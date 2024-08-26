@@ -1,0 +1,310 @@
+<%- include('../Layout/admin/headder.ejs') -%>
+
+<body>
+  <div class="container-scroller">
+    <!-- partial:partials/_navbar.html -->
+    <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
+      <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
+        <a class="navbar-brand brand-logo" href="index.html"><img src="images/logo.svg" alt="logo"/></a>
+        <a class="navbar-brand brand-logo-mini" href="index.html"><img src="images/logo-mini.svg" alt="logo"/></a>
+      </div>
+      <div class="navbar-menu-wrapper d-flex align-items-stretch">
+        <ul class="navbar-nav navbar-nav-right">
+          <li class="nav-item d-none d-lg-block full-screen-link">
+            <a class="nav-link">
+              <i class="mdi mdi-fullscreen" id="fullscreen-button"></i>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    <!-- partial -->
+    <div class="container-fluid page-body-wrapper">
+      <nav class="sidebar sidebar-offcanvas" id="sidebar">
+        <ul class="nav">
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/dashbord">
+              <span class="menu-title">Dashboard</span>
+              <i class="mdi mdi-home menu-icon"></i>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/Product">
+              <span class="menu-title">Products</span>
+              <i class="mdi mdi-cube menu-icon"></i>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/Users">
+              <span class="menu-title">Users</span>
+              <i class="mdi mdi-account menu-icon"></i>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/Orders">
+              <span class="menu-title">Orders</span>
+              <i class="mdi mdi-cart menu-icon"></i>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/Coupon">
+              <span class="menu-title">Coupons</span>
+              <i class="mdi mdi-ticket-percent menu-icon"></i>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/Banners">
+              <span class="menu-title">Banners</span>
+              <i class="mdi mdi-image-area menu-icon"></i>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/Category">
+              <span class="menu-title">Categories</span>
+              <i class="mdi mdi-folder-multiple menu-icon"></i>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/brands">
+              <span class="menu-title">Brands</span>
+              <i class="mdi mdi-apple menu-icon"></i>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/Logout">
+              <span class="menu-title">Logout</span>
+              <i class="mdi mdi-logout menu-icon"></i>
+            </a>
+          </li>
+        </ul>
+      </nav>
+      
+      <!-- partial -->
+      <div class="main-panel">
+        <div class="content-wrapper">
+          <div class="row">
+            <div class="col-12 text-center mb-4">
+              <!-- Button to trigger the modal -->
+              <button type="button" class="btn btn-success btn-lg" data-toggle="modal" data-target="#addBrandModal">Add New Brand</button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-12">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title">Brand Management</h4>
+                  <div class="table-responsive">
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th>Brand Name</th>
+                          <th>Status</th>
+                          <th>Update</th>
+                          <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <% brands.forEach(brand => { %>
+                        <tr>
+                            <td><%= brand.BrandName %></td>
+                            <td>
+                                <% if (brand.status === 'Active') { %>
+                                <label class="badge badge-gradient-success">Active</label>
+                                <% } else { %>
+                                <label class="badge badge-gradient-warning">Inactive</label>
+                                <% } %>
+                            </td>
+                            <td>
+                              <button class="btn btn-primary" 
+                                      data-toggle="modal" 
+                                      data-target="#updateBrandModal" 
+                                      data-id="<%= brand._id %>" 
+                                      data-name="<%= brand.BrandName %>" 
+                                      data-description="<%= brand.description %>">Update</button>
+                            </td>
+                            <td>
+                                <button class="btn btn-outline-success toggle-status-btn" 
+                                        data-id="<%= brand._id %>">
+                                    <%= brand.status === 'Active' ? 'Unlist' : 'List' %>
+                                </button>
+                            </td>
+                        </tr>
+                        <% }); %>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <footer class="footer">
+          <!-- footer content -->
+        </footer>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for adding a new brand -->
+  <div class="modal fade" id="addBrandModal" tabindex="-1" role="dialog" aria-labelledby="addBrandModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addBrandModalLabel">Add New Brand</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form action="/admin/add-brand" method="POST">
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="brandName">Brand Name</label>
+              <input type="text" class="form-control" id="brandName" name="brandName" required>
+            </div>
+            <div class="form-group">
+              <label for="brandDescription">Brand Description</label>
+              <textarea class="form-control" id="brandDescription" name="brandDescription" rows="3" required></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Add Brand</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for updating a brand -->
+  <div class="modal fade" id="updateBrandModal" tabindex="-1" role="dialog" aria-labelledby="updateBrandModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="updateBrandModalLabel">Update Brand</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="updateBrandName">Brand Name</label>
+            <input type="text" class="form-control" id="updateBrandName" name="brandName" required>
+          </div>
+          <div class="form-group">
+            <label for="updateBrandDescription">Brand Description</label>
+            <textarea class="form-control" id="updateBrandDescription" name="brandDescription" rows="3" required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="saveBrandBtn">Update Brand</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SweetAlert & JS Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      // Populate update modal with current data
+      $('#updateBrandModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var brandId = button.data('id');
+        var brandName = button.data('name');
+        var brandDescription = button.data('description');
+
+        var modal = $(this);
+        modal.find('#updateBrandName').val(brandName);
+        modal.find('#updateBrandDescription').val(brandDescription);
+
+        // Handle update brand form submission
+        $('#saveBrandBtn').on('click', function () {
+          var updatedBrandName = modal.find('#updateBrandName').val();
+          var updatedBrandDescription = modal.find('#updateBrandDescription').val();
+          
+
+          fetch(`/admin/update-brand/${brandId}`, {
+            method: 'Post',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              brandName: updatedBrandName,
+              brandDescription: updatedBrandDescription
+            })
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              Swal.fire({
+                title: 'Brand updated successfully!',
+                icon: 'success'
+              }).then(() => {
+                location.reload();
+              });
+            } else {
+              Swal.fire({
+                title: 'Error updating brand!',
+                icon: 'error'
+              });
+            }
+          })
+          .catch(error => {
+            Swal.fire({
+              title: 'Error!',
+              text: error.message,
+              icon: 'error'
+            });
+            console.error('Error:', error);
+          });
+        });
+      });
+
+      // Handle toggle status button click
+      const toggleStatusButtons = document.querySelectorAll('.toggle-status-btn');
+
+      toggleStatusButtons.forEach(button => {
+        button.addEventListener('click', function () {
+          const brandId = this.dataset.id;
+             console.log(brandId+"hi");
+             
+          fetch(`/admin/toggle-status/${brandId}`, {
+            method: 'Post',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === 'Active') {
+              this.textContent = 'Unlist';
+              this.classList.remove('btn-outline-danger');
+              this.classList.add('btn-outline-success');
+            } else {
+              this.textContent = 'List';
+              this.classList.remove('btn-outline-success');
+              this.classList.add('btn-outline-danger');
+            }
+
+            Swal.fire({
+              title: 'Brand status updated!',
+              icon: 'success'
+            });
+            location.reload()
+          })
+          .catch(error => {
+            Swal.fire({
+              title: 'Error updating status!',
+              icon: 'error'
+            });
+            console.error('Error:', error);
+          });
+        });
+      });
+    });
+  </script>
+</body>

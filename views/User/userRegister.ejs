@@ -1,0 +1,145 @@
+<%- include('../Layout/user/hedder.ejs') -%>
+<body>
+    <section class="vh-180" style="background-color: #4037372e;">
+        <div class="container py-5 h-100">
+            <div class="row d-flex justify-content-center align-items-center h-100">
+                <div class="col col-xl-10">
+                    <div class="card" style="border-radius: 1rem;">
+                        <div class="row g-0">
+                            <div class="col-md-6 col-lg-5 d-none d-md-block" 
+                                 style="border-radius: 1rem 0 0 1rem; background-image: url('/img/watch/istockphoto-1188150609-1024x1024.jpg'); background-size: cover; background-position: center;">
+                            </div>
+                            <div class="col-md-6 col-lg-7 d-flex align-items-center">
+                                <div class="card-body p-4 p-lg-5 text-black">
+                                    <form id="registrationForm" action="/register" method="POST">
+                                        <div class="d-flex align-items-center mb-3 pb-1">
+                                            <i class="fas fa-cubes fa-2x me-3" style="color: #ff6219;"></i>
+                                            <span class="h1 fw-bold mb-0">EXIMIUS</span>
+                                        </div>
+
+                                        <h5 class="fw-normal mb-3 pb-3" style="letter-spacing: 1px;">Create your account</h5>
+
+                                        <!-- Name input -->
+                                        <div class="form-outline mb-4">
+                                            <label class="form-label" for="name">Full Name</label>
+                                            <input type="text" id="name" name="name" class="form-control form-control-lg" />
+                                            <div id="nameError" class="text-danger"></div>
+                                        </div>
+
+                                        <!-- Email input -->
+                                        <div class="form-outline mb-4">
+                                            <label class="form-label" for="email">Email address</label>
+                                            <input type="email" id="email" name="email" class="form-control form-control-lg" />
+                                            <div id="emailError" class="text-danger"></div>
+                                        </div>
+
+                                        <!-- Mobile input -->
+                                        <div class="form-outline mb-4">
+                                            <label class="form-label" for="mobile">Mobile Number</label>
+                                            <input type="text" id="mobile" name="mobile" class="form-control form-control-lg" />
+                                            <div id="mobileError" class="text-danger"></div>
+                                        </div>
+
+                                        <!-- Password input -->
+                                        <div class="form-outline mb-4">
+                                            <label class="form-label" for="password">Password</label>
+                                            <input type="password" id="password" name="password" class="form-control form-control-lg" />
+                                            <div id="passwordError" class="text-danger"></div>
+                                        </div>
+
+                                        <div class="form-outline mb-4">
+                                            <label class="form-label" for="confirm">Confirm Password</label>
+                                            <input type="password" id="confirm" name="confirm" class="form-control form-control-lg" />
+                                            <div id="confirmError" class="text-danger"></div>
+                                        </div>
+
+                                        <div class="pt-1 mb-4">
+                                            <button class="btn btn-dark btn-lg btn-block" type="submit">Register</button>
+                                        </div>
+                                    </form>
+                                    
+                                    <!-- Google Sign-In Button -->
+                                    <div class="pt-1 mb-4">
+                                        <p class="fw-normal">Or sign in with:</p>
+                                        <a href="/auth/google" class="btn btn-lg btn-danger btn-block">
+                                            <i class="fab fa-google me-2"></i> Sign in with Google
+                                        </a>
+                                    </div>
+
+                                    <a class="small text-muted" href="/login">Already have an account? <a href="/login" style="color: #393f81;">Login here</a></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        document.getElementById('registrationForm').addEventListener('submit', function(event) {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const mobile = document.getElementById('mobile').value;
+            const name = document.getElementById('name').value;
+
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const mobilePattern = /^\d{10}$/;
+            const namePattern = /^[A-Za-z\s]+$/;
+
+            let isValid = true;
+
+            // Clear previous error messages
+            document.getElementById('nameError').textContent = '';
+            document.getElementById('emailError').textContent = '';
+            document.getElementById('mobileError').textContent = '';
+            document.getElementById('passwordError').textContent = '';
+            document.getElementById('confirmError').textContent = '';
+
+            // Validate name
+            if (!namePattern.test(name)) {
+                document.getElementById('nameError').textContent = 'Name should only contain letters and spaces';
+                isValid = false;
+            }
+
+            // Validate email
+            if (!emailPattern.test(email)) {
+                document.getElementById('emailError').textContent = 'Please enter a valid email address';
+                isValid = false;
+            }
+
+            // Validate password
+            if (password.length < 6) {
+                document.getElementById('passwordError').textContent = 'Password must be at least 6 characters long';
+                isValid = false;
+            }
+
+            // Validate mobile
+            if (!mobilePattern.test(mobile)) {
+                document.getElementById('mobileError').textContent = 'Mobile number must be exactly 10 digits';
+                isValid = false;
+            }
+
+            // Validate confirm password
+            if (password !== document.getElementById('confirm').value) {
+                document.getElementById('confirmError').textContent = 'Passwords do not match';
+                isValid = false;
+            }
+
+            if (!isValid) {
+                event.preventDefault(); // Prevent form submission
+            }
+        });
+    </script>
+
+    <style>
+        .text-danger {
+            color: #dc3545;
+            font-size: 0.875em;
+        }
+    </style>
+
+
+</body>
+
+<%- include('../Layout/user/footer.ejs') -%>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Snackbar Styles */
+        .snackbar {
+            visibility: hidden;
+            min-width: 250px;
+            margin-left: -125px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 2px;
+            position: fixed;
+            z-index: 1;
+            left: 50%;
+            bottom: 30px;
+            font-size: 17px;
+            white-space: nowrap;
+            padding: 16px;
+        }
+
+        .snackbar.show {
+            visibility: visible;
+            -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+
+        @-webkit-keyframes fadein {
+            from { bottom: 0; opacity: 0; }
+            to { bottom: 30px; opacity: 1; }
+        }
+
+        @keyframes fadein {
+            from { bottom: 0; opacity: 0; }
+            to { bottom: 30px; opacity: 1; }
+        }
+
+        @-webkit-keyframes fadeout {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        @keyframes fadeout {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        /* Page Styles */
+        section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1d2b64, #e10e4d);
+            min-height: 100vh;
+        }
+
+        .card {
+            border-radius: 20px;
+        }
+
+        .form-control {
+            border-radius: 10px;
+        }
+
+        .btn-primary {
+            background-color: #1d2b64;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <section class="vh-100 d-flex align-items-center">
+        <div class="container">
+            <div class="row d-flex justify-content-center align-items-center">
+                <div class="col col-xl-6">
+                    <div class="card shadow-lg">
+                        <div class="row g-0">
+                            <div class="col-lg-12 d-flex align-items-center">
+                                <div class="card-body p-5 text-black">
+                                    <!-- Admin Login Form -->
+                                    <form action="/admin/login" method="POST">
+                                        <div class="text-center mb-5">
+                                            <i class="fas fa-user-shield fa-3x" style="color: #f8cdda;"></i>
+                                            <h2 class="fw-bold text-uppercase mt-3">Admin Login</h2>
+                                        </div>
+
+                                        <div class="form-outline mb-4">
+                                            <input type="email" id="adminEmail" value="aswanthchuzhali123@gmail.com" name="email" class="form-control form-control-lg" required />
+                                            <label class="form-label" for="adminEmail">Email address</label>
+                                        </div>
+
+                                        <div class="form-outline mb-4">
+                                            <input type="password" id="adminPassword" value="7025" name="password" class="form-control form-control-lg" required />
+                                            <label class="form-label" for="adminPassword" >Password</label>
+                                        </div>
+
+                                        <!-- Submit Button -->
+                                        <div class="d-grid gap-2">
+                                            <button class="btn btn-primary btn-lg btn-block" type="submit">Login</button>
+                                        </div>
+                                    </form>
+                                    <!-- Form ends here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Snackbar -->
+    <div id="snackbar" class="snackbar" 
+        data-message="<%= typeof message !== 'undefined' ? message : '' %>" 
+        data-type="<%= typeof alertType !== 'undefined' ? alertType : 'info' %>">
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        function showSnackbar(message, type) {
+            var snackbar = document.getElementById("snackbar");
+            snackbar.textContent = message || "Something went wrong";
+            snackbar.style.backgroundColor = type === 'error' ? '#f44336' : '#4CAF50'; // Red for error, green for success
+            snackbar.className = "snackbar show";
+            setTimeout(function() {
+                snackbar.className = snackbar.className.replace("show", "");
+            }, 3000); // Show for 3 seconds
+        }
+
+        // Display snackbar messages based on data attributes
+        document.addEventListener('DOMContentLoaded', function() {
+            var snackbar = document.getElementById("snackbar");
+            var message = snackbar.getAttribute("data-message");
+            var type = snackbar.getAttribute("data-type");
+            if (message) {
+                showSnackbar(message, type);
+            }
+        });
+    </script>
+</body>
+</html>

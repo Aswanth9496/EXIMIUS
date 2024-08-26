@@ -1,0 +1,357 @@
+<%- include('../Layout/admin/headder.ejs') -%>
+
+<body>
+  <div class="container-scroller">
+    <!-- partial:partials/_navbar.html -->
+    <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
+      <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
+        <a class="navbar-brand brand-logo" href="/admin/dashboard"><img src="images/logo.svg" alt="logo"/></a>
+        <a class="navbar-brand brand-logo-mini" href="/admin/dashboard"><img src="images/logo-mini.svg" alt="logo"/></a>
+      </div>
+      <div class="navbar-menu-wrapper d-flex align-items-stretch">
+        <div class="search-field ml-4 d-none d-md-block"></div>
+        <ul class="navbar-nav navbar-nav-right">
+          <li class="nav-item d-none d-lg-block full-screen-link">
+            <a class="nav-link">
+              <i class="mdi mdi-fullscreen" id="fullscreen-button"></i>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    <!-- partial -->
+    <div class="container-fluid page-body-wrapper">
+      <nav class="sidebar sidebar-offcanvas" id="sidebar">
+        <ul class="nav">
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/dashbord">
+              <span class="menu-title">Dashboard</span>
+              <i class="mdi mdi-home menu-icon"></i>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/product">
+              <span class="menu-title">Products</span>
+              <i class="mdi mdi-cube menu-icon"></i>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/users">
+              <span class="menu-title">Users</span>
+              <i class="mdi mdi-account menu-icon"></i>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/orders">
+              <span class="menu-title">Orders</span>
+              <i class="mdi mdi-cart menu-icon"></i>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/coupons">
+              <span class="menu-title">Coupons</span>
+              <i class="mdi mdi-ticket-percent menu-icon"></i>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/banners">
+              <span class="menu-title">Banners</span>
+              <i class="mdi mdi-image-area menu-icon"></i>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/Category">
+              <span class="menu-title">Categories</span>
+              <i class="mdi mdi-folder-multiple menu-icon"></i>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/brands">
+              <span class="menu-title">Brands</span>
+              <i class="mdi mdi-apple menu-icon"></i>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/logout">
+              <span class="menu-title">Logout</span>
+              <i class="mdi mdi-logout menu-icon"></i>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+     
+
+              <div class="container-scroller">
+                  <div class="main-panel">
+                      <div class="content-wrapper">
+                          <div class="row">
+                              <div class="col-12 text-center mb-4">
+                                  <!-- Button to trigger the modal -->
+                                  <button type="button" class="btn btn-success btn-lg" data-toggle="modal" data-target="#addCategoryModal">Add New Category</button>
+                              </div>
+                          </div>
+                          <div class="row">
+                              <div class="col-12">
+                                  <div class="card">
+                                      <div class="card-body">
+                                          <h4 class="card-title">Category Management</h4>
+                                          <div class="table-responsive">
+                                              <table class="table">
+                                                  <thead>
+                                                      <tr>
+                                                          <th>Category Name</th>
+                                                          <th>Status</th>
+                                                          <th>Update</th>
+                                                          <th>Action</th>
+                                                      </tr>
+                                                  </thead>
+                                                  <tbody>
+                                                      <% categories.forEach(category => { %>
+                                                          <tr>
+                                                              <td><%= category.name %></td>
+                                                              <td>
+                                                                  <label class="badge <%= category.status ? 'badge-gradient-success' : 'badge-gradient-warning' %>">
+                                                                      <%= category.status ? 'Active' : 'Inactive' %>
+                                                                  </label>
+                                                              </td>
+                                                              <td>
+                                                                  <a href="#" class="btn btn-primary update-btn" data-id="<%= category._id %>" data-name="<%= category.name %>">Update</a>
+                                                              </td>
+                                                              <td>
+                                                                  <button class="btn <%= category.status ? 'btn-outline-danger' : 'btn-outline-success' %> list-btn" data-id="<%= category._id %>" data-status="<%= category.status ? 'unlist' : 'list' %>">
+                                                                      <%= category.status ? 'Unlist' : 'List' %>
+                                                                  </button>
+                                                              </td>
+                                                          </tr>
+                                                      <% }) %>
+                                                  </tbody>
+                                              </table>
+                                          </div>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+      
+                      <!-- Modal for Adding New Category -->
+                      <div class="modal fade" id="addCategoryModal" tabindex="-1" role="dialog" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+                          <div class="modal-dialog" role="document">
+                              <div class="modal-content">
+                                  <div class="modal-header">
+                                      <h5 class="modal-title" id="addCategoryModalLabel">Add New Category</h5>
+                                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                          <span aria-hidden="true">&times;</span>
+                                      </button>
+                                  </div>
+                                  <div class="modal-body">
+                                      <form id="addCategoryForm" method="POST">
+                                          <div class="form-group">
+                                              <label for="categoryName">Category Name</label>
+                                              <input type="text" class="form-control" id="categoryName" name="categoryName" placeholder="Enter category name" >
+                                          </div>
+                                          <div class="form-group">
+                                              <label for="categoryStatus">Status</label>
+                                              <select class="form-control" id="categoryStatus" name="categoryStatus">
+                                                  <option value="true">Active</option>
+                                                  <option value="false">Inactive</option>
+                                              </select>
+                                          </div>
+                                          <button type="submit" class="btn btn-success">Save Category</button>
+                                      </form>
+                                  </div>
+                                  <div class="modal-footer">
+                                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+      
+                      <!-- Modal for Updating Category -->
+                      <div class="modal fade" id="updateCategoryModal" tabindex="-1" role="dialog" aria-labelledby="updateCategoryModalLabel" aria-hidden="true">
+                          <div class="modal-dialog" role="document">
+                              <div class="modal-content">
+                                  <div class="modal-header">
+                                      <h5 class="modal-title" id="updateCategoryModalLabel">Update Category</h5>
+                                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                          <span aria-hidden="true">&times;</span>
+                                      </button>
+                                  </div>
+                                  <div class="modal-body">
+                                      <form id="updateCategoryForm" method="POST">
+                                          <input type="hidden" id="categoryId" name="categoryId" value="">
+                                          <div class="form-group">
+                                              <label for="updateCategoryName">Category Name</label>
+                                              <input type="text" class="form-control" id="updateCategoryName" name="categoryName" placeholder="Enter new category name" required>
+                                          </div>
+                                          <button type="submit" class="btn btn-success">Save Changes</button>
+                                      </form>
+                                  </div>
+                                  <div class="modal-footer">
+                                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+      
+                      <!-- Footer code -->
+                      <%- include('../Layout/admin/footer.ejs') -%>
+                  </div>
+              </div>
+          </div>
+      
+          <!-- Add SweetAlert library -->
+          <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+          <!-- Include jQuery and Bootstrap JS -->
+          <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+          <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+      
+          <!-- Include your custom JS -->
+          <script>
+              document.addEventListener('DOMContentLoaded', function() {
+                  // Handle add category form submission
+                  document.getElementById('addCategoryForm').addEventListener('submit', async (event) => {
+                      event.preventDefault();
+      
+                      const categoryName = document.getElementById('categoryName').value;
+                      const categoryStatus = document.getElementById('categoryStatus').value;
+      
+                      try {
+                          const response = await fetch('/admin/addCategory', {
+                              method: 'POST',
+                              headers: {
+                                  'Content-Type': 'application/json'
+                              },
+                              body: JSON.stringify({ categoryName, categoryStatus })
+                          });
+      
+                          const data = await response.json();
+                          if (response.ok) {
+                              Swal.fire({
+                                  icon: 'success',
+                                  title: data.msg,
+                                  showConfirmButton: false,
+                                  timer: 1500
+                              }).then(() => {
+                                  location.reload();
+                              });
+                          } else {
+                              Swal.fire({
+                                  icon: 'error',
+                                  title: 'Error',
+                                  text: data.msg
+                              });
+                          }
+                      } catch (error) {
+                          Swal.fire({
+                              icon: 'error',
+                              title: 'Error',
+                              text: 'An unexpected error occurred'
+                          });
+                          console.error('Error:', error);
+                      }
+                  });
+      
+                  // Handle update category form submission
+                  document.querySelectorAll('.update-btn').forEach(button => {
+                      button.addEventListener('click', function() {
+                          const categoryId = this.dataset.id;
+                          const categoryName = this.dataset.name;
+      
+                          document.getElementById('categoryId').value = categoryId;
+                          document.getElementById('updateCategoryName').value = categoryName;
+      
+                          $('#updateCategoryModal').modal('show');
+                      });
+                  });
+      
+                  document.getElementById('updateCategoryForm').addEventListener('submit', async (event) => {
+                      event.preventDefault();
+      
+                      const categoryId = document.getElementById('categoryId').value;
+                      const categoryName = document.getElementById('updateCategoryName').value;
+      
+                      try {
+                          const response = await fetch('/admin/update-category-name', {
+                              method: 'POST',
+                              headers: {
+                                  'Content-Type': 'application/json'
+                              },
+                              body: JSON.stringify({ categoryId, categoryName })
+                          });
+      
+                          const data = await response.json();
+                          if (response.ok) {
+                              Swal.fire({
+                                  icon: 'success',
+                                  title: data.msg,
+                                  showConfirmButton: false,
+                                  timer: 1500
+                              }).then(() => {
+                                  location.reload();
+                              });
+                          } else {
+                              Swal.fire({
+                                  icon: 'error',
+                                  title: 'Error',
+                                  text: data.msg
+                              });
+                          }
+                      } catch (error) {
+                          Swal.fire({
+                              icon: 'error',
+                              title: 'Error',
+                              text: 'An unexpected error occurred'
+                          });
+                          console.error('Error:', error);
+                      }
+                  });
+      
+                  // Handle list/unlist button click
+                  document.querySelectorAll('.list-btn').forEach(button => {
+                      button.addEventListener('click', async () => {
+                          const categoryId = button.dataset.id;
+                          const action = button.dataset.status;
+      
+                          try {
+                              const response = await fetch('/admin/toggle-category-status', {
+                                  method: 'POST',
+                                  headers: {
+                                      'Content-Type': 'application/json'
+                                  },
+                                  body: JSON.stringify({ categoryId, status: action })
+                              });
+      
+                              const data = await response.json();
+                              if (data.success) {
+                                  Swal.fire({
+                                      icon: 'success',
+                                      title: data.message,
+                                      showConfirmButton: false,
+                                      timer: 1500
+                                  }).then(() => {
+                                      location.reload();
+                                  });
+                              } else {
+                                  Swal.fire({
+                                      icon: 'error',
+                                      title: 'Error',
+                                      text: data.message
+                                  });
+                              }
+                          } catch (error) {
+                              Swal.fire({
+                                  icon: 'error',
+                                  title: 'Error',
+                                  text: 'An unexpected error occurred'
+                              });
+                              console.error('Error:', error);
+                          }
+                      });
+                  });
+              });
+          </script>
+      </div>
+      
+      <%- include('../Layout/admin/footer.ejs') -%>
+      
