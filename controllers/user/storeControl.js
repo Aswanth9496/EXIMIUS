@@ -7,11 +7,11 @@ const LoadStorePage = async (req,res)=>{
        const  categorie = await categories.find();
        const brand = await brands.find();
        const product = await products.find({ listed: true }).populate('category').populate('brand');
-        
-        res.render('store',{categorie,brand,product});
+       const userData =req.session.user   
+        res.render('store',{categorie,brand,product,userData: userData ? userData:null});
     } catch (error) {
         console.log(error);
-    }
+    }   
 };
 
 
@@ -34,4 +34,4 @@ const productDetails = async (req,res)=>{
 module.exports ={
     LoadStorePage,
     productDetails
-}
+};

@@ -3,21 +3,23 @@
 // Load home page
 const lodeHomePage = async (req, res) => {
     try {
-        if (req.session.user) { 
-            return res.redirect('/');
-        }
-        res.render('home');
+        const userData =req.session.user   
+        
+        res.render('home',{
+            userData: userData ? userData:null
+        });
     } catch (error) {
         console.log(error.message);
     }
-}
+};
 
 
 
-//load user cart
-const loadCart =async (req,res)=>{
+const logOut = async (req,res)=>{
     try {
-        await res.render('cart')
+        await req.session.destroy();
+        res.redirect('/');
+        
     } catch (error) {
         console.log(error);
         
@@ -28,7 +30,7 @@ const loadCart =async (req,res)=>{
 
 module.exports = {
     lodeHomePage,
-    loadCart,
+    logOut
    
 }
 

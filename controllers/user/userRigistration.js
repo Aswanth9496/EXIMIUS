@@ -46,6 +46,11 @@ const sendMail = (to, text) => {
     });
 };
 
+
+
+
+
+
 // Load user registration form
 const loadRegister = async (req, res) => {
     try {
@@ -133,13 +138,15 @@ const verifiyingOTP = async (req,res)=>{
                 verified: true // Set user as verified
             });
 
-            await newUser.save();
+             // Save the new user to the database
+             await newUser.save();
 
               // Clear the session data
               req.session.otp = null;
-              req.session.user = null;
+              req.session.user=null;
+            
 
-            res.redirect('/');
+            res.redirect('/login');
 
         }else{
 

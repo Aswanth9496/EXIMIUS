@@ -3,6 +3,14 @@ const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const bcrypt = require('bcrypt'); 
 
+
+const Cart = require('../../models/cartModel');
+const mongoose = require('mongoose');
+
+
+
+
+
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
@@ -46,6 +54,26 @@ passport.deserializeUser(async (id, done) => {
 });
 
 
+
+
+// Create a new cart
+const createCart = async (userId) => {
+    try {
+        const newCart = new Cart({
+            user: userId,
+            products: [],
+            totalPrice: 0
+        });
+        await newCart.save();
+
+    } catch (error) {
+        console.log(error);
+        
+    }
+    
+};
+
+
 // Load user login page
 const loginLoad = async (req, res) => {
     try {
@@ -53,11 +81,11 @@ const loginLoad = async (req, res) => {
     } catch (error) {
         console.log(error.message);
     }
-}
+};
+
+
 
 // Verify the user 
-
-
 const userVerification = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -79,7 +107,14 @@ const userVerification = async (req, res) => {
                     id: existingUser._id,
                     username: existingUser.name
                 };
-                res.render('home.ejs');
+
+                 // Ensure the user has a cart
+                 const isCart = await Cart.findOne({ user: existingUser._id });
+                 if (!isCart) {
+                     await createCart(existingUser._id);
+                 }
+
+                res.redirect('/')
             } else {
                
                 res.render('login.ejs', { message: "Incorrect password" });
@@ -93,9 +128,12 @@ const userVerification = async (req, res) => {
     } catch (error) {
         console.log(error.message);
     }
-}
+};
+
+
+
 
 module.exports = {
     loginLoad,
     userVerification
-}
+};

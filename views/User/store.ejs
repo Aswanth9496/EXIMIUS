@@ -3,7 +3,6 @@
 
 
 <body>
- 
     <!-- Header Section Begin -->
     <header class="header">
         <div class="header__top">
@@ -17,7 +16,14 @@
                     <div class="col-lg-6 col-md-5">
                         <div class="header__top__right">
                             <div class="header__top__links">
-                                <a href="/login">Sign in</a>                               
+                                <% if (userData) { %>
+                                    <!-- User is logged in -->
+                                    <a href="/profile">Profile</a>
+                                    <a href="/logout">Logout</a>
+                                <% } else { %>
+                                    <!-- User is not logged in -->
+                                    <a href="/login">Sign in</a>
+                                <% } %>                             
                             </div>                           
                         </div>
                     </div>
@@ -117,25 +123,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="card">
-                                    <div class="card-heading">
-                                        <a data-toggle="collapse" data-target="#collapseThree">Filter Price</a>
-                                    </div>
-                                    <div id="collapseThree" class="collapse show" data-parent="#accordionExample">
-                                        <div class="card-body">
-                                            <div class="shop__sidebar__price">
-                                                <ul>
-                                                    <li><a href="#">$0.00 - $50.00</a></li>
-                                                    <li><a href="#">$50.00 - $100.00</a></li>
-                                                    <li><a href="#">$100.00 - $150.00</a></li>
-                                                    <li><a href="#">$150.00 - $200.00</a></li>
-                                                    <li><a href="#">$200.00 - $250.00</a></li>
-                                                    <li><a href="#">250.00+</a></li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                
                                
                             </div>
                         </div>
@@ -144,11 +132,7 @@
                 <div class="col-lg-9">
                     <div class="shop__product__option">
                         <div class="row">
-                            <div class="col-lg-6 col-md-6 col-sm-6">
-                                <div class="shop__product__option__left">
-                                    <p>Showing 1–12 of 126 results</p>
-                                </div>
-                            </div>
+                           
                             <div class="col-lg-6 col-md-6 col-sm-6">
                                 <div class="shop__product__option__right">
                                     <p>Sort by Price:</p>
@@ -177,7 +161,7 @@
                                         </div>
                                     </div>
                                 </a>
-                            </div>
+                            </div>  
                         <% }) %>
                     </div>
                     
