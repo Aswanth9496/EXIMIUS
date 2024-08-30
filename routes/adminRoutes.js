@@ -12,9 +12,10 @@ const adminController = require('../controllers/admin/adminController');
 const UserController  = require('../controllers/admin/UsersControllers');
 const CategoryController = require('../controllers/admin/CategoryManagement');
 const productController = require('../controllers/admin/productsController');
-
+const OrdersController = require('../controllers/admin/ordersController');
 
 const upload = require('../config/multer');
+const { orderDetails } = require('../controllers/user/checkoutControl');
 
 //admin login
 app.get('/',adminController.loadAdminLoginPage);
@@ -50,6 +51,13 @@ app.post('/add-product',isAuthenticated,upload.array('productimage', 3),productC
 app.get('/edit-Product',isAuthenticated,productController.loadEditProduct);
 app.post('/update-product/:productId',isAuthenticated, upload.array('productimage', 3), productController.updateProduct);
 app.post('/toggle-listing/:productId',isAuthenticated, productController.toggleListingStatus);
+
+//orders list 
+app.get('/Orders',OrdersController.loadOrders);
+app.get('/orderDetails/:id',OrdersController.orderDetails);
+app.post('/updateOrderStatus',OrdersController.updateOrderStatus);
+
+
 
 module.exports = app ;
 

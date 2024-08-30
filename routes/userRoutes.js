@@ -10,6 +10,8 @@ const storeController = require('../controllers/user/storeControl');
 const cartController = require('../controllers/user/cartControl');
 const userProfileController = require('../controllers/user/userProfileController');
 const userAddressController= require('../controllers/user/userAddressControl');
+const checkoutController = require('../controllers/user/checkoutControl');
+const orderListController =require('../controllers/user/userOrderListControll');
 
 
 
@@ -44,6 +46,7 @@ router.get('/store',storeController.LoadStorePage);
 router.get('/product-details/:id',storeController.productDetails);
 
 
+
 // cart 
 router.get('/cart', cartController.loadCart);
 router.post('/add_to_cart',cartController.addToCart);
@@ -56,12 +59,24 @@ router.get('/profile',userProfileController.loadProfile);
 router.post('/changePassword',userProfileController.updateUserPassword);
 router.get('/updateProfile',userProfileController.updateProfile);
 
+//profile address
 router.get('/address',userAddressController.loadAddress);
 router.post('/addAddress',userAddressController.addAddress);
 router.delete('/deleteAddress/:id',userAddressController.deleteAddress);
 router.post('/updateAddress',userAddressController.updateAddress);
 
+router.get('/orderList',orderListController.loadOrderList);
 
 
+// check out
+router.get('/checkout',checkoutController.loadCheckout);
+router.post('/CheckoutAddaddress',checkoutController.addAddress);
+router.delete('/CheckoutDeleteAddress/:id',checkoutController.deleteAddress);
+
+
+//order
+router.post('/placeOrder',checkoutController.placeOrder);
+router.get('/orderConfirmation',checkoutController.orderDetails);
+router.post('/placeorder/:id',checkoutController.placeOrder);
 
 module.exports = router;

@@ -44,12 +44,21 @@ const addToCart = async (req, res) => {
 
         let cart = await Cart.findOne({ user: userId });
 
+
+        
+
+        
+        
+
       
         // Check if the product is already in the cart
         const existingProductIndex = cart.products.findIndex(item => item.product.equals(productId));
         if (existingProductIndex > -1) {
             
             cart.products[existingProductIndex].quantity += quantity;
+            if (cart.products[existingProductIndex].quantity > 5) {
+                cart.products[existingProductIndex].quantity = 5;
+            }
         } else {
             // Add new product to the cart
             cart.products.push({ product: productId, quantity });

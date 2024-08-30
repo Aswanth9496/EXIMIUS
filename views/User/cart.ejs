@@ -1,7 +1,14 @@
 
 <%- include('../Layout/user/hedder.ejs') -%>
 
-
+<style>
+    .product__cart__item__pic img {
+    border-radius: 50%; /* Makes the image round */
+    width: 80px; /* Adjust size as needed */
+    height: 80px; /* Adjust size as needed */
+    object-fit: cover; /* Ensures the image covers the area without distortion */
+}
+</style>
 <body>
    
        
@@ -92,7 +99,7 @@
                                     <tr>
                                         <td class="product__cart__item">
                                             <div class="product__cart__item__pic">
-                                                <img src="<%= item.product.image %>" alt="<%= item.product.name %>">
+                                                <img src="/productIMG/<%=item.product.productimages[0] %>" alt="<%= item.product.name %>">
                                             </div>
                                             <div class="product__cart__item__text">
                                                 <h6><%= item.product.name %></h6>
@@ -102,7 +109,7 @@
                                         <td class="quantity__item">
                                             <div class="quantity">
                                                 <div class="pro-qty-2">
-                                                    <input type="number" name="quantities[<%= item.product._id %>]" value="<%= item.quantity %>" min="1">
+                                                    <input type="number" name="quantities[<%= item.product._id %>]" value="<%= item.quantity %>" min="1"  max="5">
                                                 </div>
                                             </div>
                                         </td>
@@ -221,7 +228,7 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.forEach((value, key) => {
             if (key.startsWith('quantities[')) {
                 const productId = key.match(/\[(.*?)\]/)[1];
-                data[productId] = value;
+                data[productId] = Math.min(5, value);
             }
         });
 

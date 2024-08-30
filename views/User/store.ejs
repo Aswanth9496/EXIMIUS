@@ -49,7 +49,7 @@
                 </div>
                 <div class="col-lg-3 col-md-3">
                     <div class="header__nav__option">
-                        <a href="#"><img src="img/icon/cart.png" alt=""> <span>0</span></a>
+                        <a href="/cart"><img src="img/icon/cart.png" alt=""> <span>0</span></a>
                         <div class="price">$0.00</div>
                     </div>
                 </div>
@@ -100,12 +100,18 @@
                                             <div class="shop__sidebar__categories">
                                                 <ul class="nice-scroll">
                                                     <% categorie.forEach(category => { %>
-                                                        <li><a href="#"><%= category.name %></a></li>
+                                                        <li>
+                                                            <label>
+                                                                <input type="checkbox" name="categories" value="<%= category.name %>">
+                                                                <%= category.name %>
+                                                            </label>
+                                                        </li>
                                                     <% }) %>
                                                 </ul>
                                             </div>
                                         </div>
                                     </div>
+                                    
                                 </div>
                                 <div class="card">
                                     <div class="card-heading">
@@ -116,12 +122,18 @@
                                             <div class="shop__sidebar__brand">
                                                 <ul>
                                                     <% brand.forEach(brand => { %>
-                                                        <li><a href="#"><%= brand.BrandName %></a></li>
+                                                        <li>
+                                                            <label>
+                                                                <input type="checkbox" name="brands" value="<%= brand.BrandName %>">
+                                                                <%= brand.BrandName %>
+                                                            </label>
+                                                        </li>
                                                     <% }) %>
                                                 </ul>
                                             </div>
                                         </div>
                                     </div>
+                                    
                                 </div>
                                 
                                
