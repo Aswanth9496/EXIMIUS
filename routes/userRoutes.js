@@ -47,6 +47,8 @@ router.get('/product-details/:id',storeController.productDetails);
 // cart 
 router.get('/cart', cartController.loadCart);
 router.post('/add_to_cart',cartController.addToCart);
+router.delete('/removeFromCart/:id',cartController.deleteFromCart);
+router.post('/updateCart',cartController.updateCart)
 
 
 // profile
@@ -56,7 +58,9 @@ router.get('/updateProfile',userProfileController.updateProfile);
 
 router.get('/address',userAddressController.loadAddress);
 router.post('/addAddress',userAddressController.addAddress);
-router.delete('/deleteAddress/:id',userAddressController.deleteAddress)
+router.delete('/deleteAddress/:id',userAddressController.deleteAddress);
+router.post('/updateAddress',userAddressController.updateAddress);
+
 
 
 

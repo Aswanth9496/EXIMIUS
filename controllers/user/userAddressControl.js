@@ -45,6 +45,40 @@ const addAddress = async (req, res) => {
     }
 };
 
+
+
+
+const updateAddress = async (req, res) => {
+    try {
+        const { id, addressName, addressMobile, addressHouse, addressStreet, addressCity, addressDistrict, addressState, addressPin } = req.body;
+
+        const updatedAddress = await Address.findByIdAndUpdate(
+            id,
+            {
+                addressName,
+                addressMobile,
+                addressHouse,
+                addressStreet,
+                addressCity,
+                addressDistrict,
+                addressState,
+                addressPin
+            },
+            { new: true } // Return the updated document
+        );
+
+        if (!updatedAddress) {
+            return res.status(404).json({ success: false, message: 'Address not found' });
+        }
+
+        res.json({ success: true, address: updatedAddress });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, message: 'Server Error' });
+    }
+};
+
+
 const deleteAddress = async (req, res) => {
     try {
         const addressId = req.params.id;
@@ -58,8 +92,12 @@ const deleteAddress = async (req, res) => {
 
 
 
+
+
+
 module.exports ={
     loadAddress,
     addAddress,
-    deleteAddress
-}
+    deleteAddress,
+    updateAddress
+};
