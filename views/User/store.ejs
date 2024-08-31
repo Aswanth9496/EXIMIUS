@@ -84,11 +84,12 @@
                 <div class="col-lg-3">
                     <div class="shop__sidebar">
                         <div class="shop__sidebar__search">
-                            <form action="#">
-                                <input type="text" placeholder="Search...">
+                            <form action="/store" method="GET">
+                                <input type="text" id="search" name="search" placeholder="Search by name...">
                                 <button type="submit"><span class="icon_search"></span></button>
                             </form>
                         </div>
+    
                         <div class="shop__sidebar__accordion">
                             <div class="accordion" id="accordionExample">
                                 <div class="card">
@@ -102,7 +103,8 @@
                                                     <% categorie.forEach(category => { %>
                                                         <li>
                                                             <label>
-                                                                <input type="checkbox" name="categories" value="<%= category.name %>">
+                                                                <input type="checkbox" class="category-filter" value="<%= category._id %>"
+                                                                    <%= selectedCategories.includes(category._id.toString()) ? 'checked' : '' %> >
                                                                 <%= category.name %>
                                                             </label>
                                                         </li>
@@ -111,7 +113,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                    
                                 </div>
                                 <div class="card">
                                     <div class="card-heading">
@@ -124,7 +125,8 @@
                                                     <% brand.forEach(brand => { %>
                                                         <li>
                                                             <label>
-                                                                <input type="checkbox" name="brands" value="<%= brand.BrandName %>">
+                                                                <input type="checkbox" class="brand-filter" value="<%= brand._id %>"
+                                                                    <%= selectedBrands.includes(brand._id.toString()) ? 'checked' : '' %> >
                                                                 <%= brand.BrandName %>
                                                             </label>
                                                         </li>
@@ -133,58 +135,38 @@
                                             </div>
                                         </div>
                                     </div>
-                                    
                                 </div>
-                                
-                               
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-9">
-                    <div class="shop__product__option">
+                    <div id="product-list">
                         <div class="row">
-                           
-                            <div class="col-lg-6 col-md-6 col-sm-6">
-                                <div class="shop__product__option__right">
-                                    <p>Sort by Price:</p>
-                                    <select>
-                                        <option value="">Low To High</option>
-                                        <option value="">$0 - $55</option>
-                                        <option value="">$55 - $100</option>
-                                    </select>
-                                </div>
-                            </div>
+                            <% product.forEach(product => { %>
+                                <div class="col-lg-4 col-md-6 col-sm-6">
+                                    <a href="/product-details/<%= product._id %>" style="text-decoration: none; color: inherit;">
+                                        <div class="product__item" style="text-align: center;">
+                                            <div class="product__item__pic" style="position: relative; overflow: hidden;">
+                                                <img src="/productIMG/<%= product.productimages[0] %>" alt="<%= product.name %>"
+                                                    class="product-img"
+                                                    style="width: 100%; max-width: 300px; height: 250px; object-fit: cover; transition: transform 0.5s ease;">
+                                            </div>
+                                            <div class="product__item__text" style="padding: 10px 0;">
+                                                <h6 style="margin: 0; font-size: 16px;"><%= product.name %></h6>
+                                                <h5 style="margin: 0; font-size: 18px; color: #333;">$<%= product.price.toFixed(2) %></h5>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>  
+                            <% }) %>
                         </div>
                     </div>
-                    <div class="row">
-                        <% product.forEach(product => { %>
-                            <div class="col-lg-4 col-md-6 col-sm-6">
-                                <a href="/product-details/<%= product._id %>" style="text-decoration: none; color: inherit;">
-                                    <div class="product__item" style="text-align: center;">
-                                        <div class="product__item__pic" style="position: relative; overflow: hidden;">
-                                            <img src="/productIMG/<%= product.productimages[0] %>" alt="<%= product.name %>"
-                                                class="product-img"
-                                                style="width: 100%; max-width: 300px; height: 250px; object-fit: cover; transition: transform 0.5s ease;">
-                                        </div>
-                                        <div class="product__item__text" style="padding: 10px 0;">
-                                            <h6 style="margin: 0; font-size: 16px;"><%= product.name %></h6>
-                                            <h5 style="margin: 0; font-size: 18px; color: #333;">$<%= product.price.toFixed(2) %></h5>
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>  
-                        <% }) %>
-                    </div>
-                    
-                                        
-                   
                 </div>
             </div>
         </div>
     </section>
-    <!-- Shop Section End -->
-
+    
     <!-- Footer Section Begin -->
     <footer class="footer">
         <div class="container">
@@ -199,10 +181,7 @@
                     </div>
                 </div>
                 <div class="col-lg-2 offset-lg-1 col-md-3 col-sm-6">
-                    <div class="footer__widget">
-                        
-                       
-                    </div>
+                    <div class="footer__widget"></div>
                 </div>
                 <div class="col-lg-2 col-md-3 col-sm-6">
                     <div class="footer__widget">
@@ -228,9 +207,9 @@
                     </div>
                 </div>
             </div>
-            
+        </div>
     </footer>
-   
+    
     <!-- Search Begin -->
     <div class="search-model">
         <div class="h-100 d-flex align-items-center justify-content-center">
@@ -241,6 +220,7 @@
         </div>
     </div>
     <!-- Search End -->
+    
     <script>
         // JavaScript for hover effect
         document.querySelectorAll('.product__item__pic').forEach(pic => {
@@ -251,6 +231,20 @@
                 this.querySelector('img').style.transform = 'scale(1)';
             });
         });
+    
+        document.querySelectorAll('.category-filter, .brand-filter').forEach(filter => {
+            filter.addEventListener('change', function() {
+                const selectedCategories = Array.from(document.querySelectorAll('.category-filter:checked')).map(cb => cb.value);
+                const selectedBrands = Array.from(document.querySelectorAll('.brand-filter:checked')).map(cb => cb.value);
+    
+                const url = new URL(window.location.href);
+                url.searchParams.set('categories', selectedCategories.join(','));
+                url.searchParams.set('brands', selectedBrands.join(','));
+    
+                window.location.href = url.toString();
+            });
+        });
     </script>
+    
 
     <%- include('../Layout/user/footer.ejs') -%>

@@ -47,6 +47,7 @@ router.get('/product-details/:id',storeController.productDetails);
 
 
 
+
 // cart 
 router.get('/cart', cartController.loadCart);
 router.post('/add_to_cart',cartController.addToCart);
