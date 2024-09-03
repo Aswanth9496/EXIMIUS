@@ -504,13 +504,7 @@ font-weight: bold;
                     </label>
                 </div>
                 <div class="button-container ml-auto">
-                    <button class="btn btn-sm btn-outline-secondary" 
-                            data-toggle="modal" 
-                            data-target="#addressModal" 
-                            data-id="<%= address._id %>" 
-                            aria-label="Edit Address">
-                        Edit
-                    </button>
+                   
                     <button class="btn btn-sm btn-outline-danger ml-2" 
                             data-id="<%= address._id %>" 
                             aria-label="Delete Address">
@@ -552,7 +546,7 @@ font-weight: bold;
                                         </li>
                                         <li class="cart-item mb-3">
                                             <span>Order Total</span> 
-                                            <span class="float-right">&#8377; <%= cart.totalPrice %></span>
+                                            <span class="float-right">&#8377; <%= totalPrice %></span>
                                         </li>
                                         <li class="discount-item mb-3" style="display: none;">
                                             <span>Coupon Discount</span> <span class="float-right discount-amount">&#8377; 0</span>
@@ -705,85 +699,7 @@ font-weight: bold;
 </div>
 
 
-
-<!-- Modal for editing an address -->
-<div class="modal fade" id="editAddressModal" tabindex="-1" aria-labelledby="editAddressModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editAddressModalLabel">Edit Address</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="editAddressForm" action="/CheckoutUpdateAddress" method="post">
-                    <input type="hidden" id="editAddressId" name="addressId">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="editAddressName" class="form-label">Name</label>
-                            <input type="text" class="form-control" id="editAddressName" name="addressName">
-                            <div class="invalid-feedback" id="edit-name-error">Name is required.</div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="editAddressEmail" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="editAddressEmail" name="addressEmail">
-                            <div class="invalid-feedback" id="edit-email-error">Please enter a valid email.</div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="editAddressMobile" class="form-label">Mobile</label>
-                            <input type="tel" class="form-control" id="editAddressMobile" name="addressMobile" pattern="[0-9]{10}">
-                            <div class="invalid-feedback" id="edit-mobile-error">Mobile number must be 10 digits.</div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="editAddressHouse" class="form-label">House/Apartment No.</label>
-                            <input type="text" class="form-control" id="editAddressHouse" name="addressHouse">
-                            <div class="invalid-feedback" id="edit-house-error">House/Apartment number is required.</div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="editAddressStreet" class="form-label">Street</label>
-                            <input type="text" class="form-control" id="editAddressStreet" name="addressStreet">
-                            <div class="invalid-feedback" id="edit-street-error">Street is required.</div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="editAddressCity" class="form-label">City</label>
-                            <input type="text" class="form-control" id="editAddressCity" name="addressCity">
-                            <div class="invalid-feedback" id="edit-city-error">City is required.</div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="editAddressDistrict" class="form-label">District</label>
-                            <input type="text" class="form-control" id="editAddressDistrict" name="addressDistrict">
-                            <div class="invalid-feedback" id="edit-district-error">District is required.</div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="editAddressState" class="form-label">State</label>
-                            <input type="text" class="form-control" id="editAddressState" name="addressState">
-                            <div class="invalid-feedback" id="edit-state-error">State is required.</div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="editAddressPin" class="form-label">Pin Code</label>
-                            <input type="number" class="form-control" id="editAddressPin" name="addressPin">
-                            <div class="invalid-feedback" id="edit-pin-error">Pin code is required.</div>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Save Address</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
- <!-- edit modal end here -------------------------------------------------------------------------------------------------------->
-
-       
+     
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('addressForm');
@@ -926,87 +842,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Handle Edit button clicks
-    document.querySelectorAll('.btn-outline-secondary').forEach(button => {
-        button.addEventListener('click', async () => {
-            const addressId = button.getAttribute('data-id');
-
-            try {
-                const response = await fetch(`/CheckoutGetAddress/${addressId}`);
-                const address = await response.json();
-
-                if (address.success) {
-                    // Populate the modal with address data
-                    document.getElementById('editAddressId').value = address.data._id;
-                    document.getElementById('editAddressName').value = address.data.addressName;
-                    document.getElementById('editAddressEmail').value = address.data.addressEmail;
-                    document.getElementById('editAddressMobile').value = address.data.addressMobile;
-                    document.getElementById('editAddressHouse').value = address.data.addressHouse;
-                    document.getElementById('editAddressStreet').value = address.data.addressStreet;
-                    document.getElementById('editAddressCity').value = address.data.addressCity;
-                    document.getElementById('editAddressDistrict').value = address.data.addressDistrict;
-                    document.getElementById('editAddressState').value = address.data.addressState;
-                    document.getElementById('editAddressPin').value = address.data.addressPin;
-
-                    // Show the modal
-                    $('#editAddressModal').modal('show');
-                } else {
-                    alert('Failed to load address details.');
-                }
-            } catch (error) {
-                console.error('Error fetching address data:', error);
-                alert('An error occurred while fetching address details.');
-            }
-        });
-    });
-
-    // Handle form validation and submission
-    document.getElementById('editAddressForm').addEventListener('submit', async (event) => {
-        event.preventDefault(); // Prevent default form submission
-
-        // Clear previous error messages
-        const errors = document.querySelectorAll('.invalid-feedback');
-        errors.forEach(error => error.style.display = 'none');
-
-        let valid = true;
-
-        // Validate fields
-        const fields = ['Name', 'Email', 'Mobile', 'House', 'Street', 'City', 'District', 'State', 'Pin'];
-        fields.forEach(field => {
-            const input = document.getElementById(`editAddress${field}`);
-            if (!input.value.trim()) {
-                document.getElementById(`edit-${field.toLowerCase()}-error`).style.display = 'block';
-                valid = false;
-            }
-        });
-
-        if (valid) {
-            const form = document.getElementById('editAddressForm');
-            const formData = new FormData(form);
-
-            try {
-                const response = await fetch('/CheckoutUpdateAddress', {
-                    method: 'POST',
-                    body: formData
-                });
-                const result = await response.json();
-
-                if (result.success) {
-                    $('#editAddressModal').modal('hide');
-                    Swal.fire('Updated!', 'Your address has been updated.', 'success').then(() => {
-                        location.reload(); // Optionally reload the page to see changes
-                    });
-                } else {
-                    Swal.fire('Error!', 'Failed to update address.', 'error');
-                }
-            } catch (error) {
-                console.error('Error updating address:', error);
-                Swal.fire('Error!', 'An error occurred while updating the address.', 'error');
-            }
-        }
-    });
-});
 
 
 

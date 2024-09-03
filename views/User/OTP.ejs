@@ -30,6 +30,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container p-5">
         <div class="row">
@@ -37,12 +38,17 @@
             <div class="col-md-5 mt-5">
                 <div class="bg-white p-5 rounded-3 shadow-sm border">
                     <div>
-                        <p class="text-center text-success" style="font-size: 5.5rem;"><i class="fa-solid fa-envelope-circle-check"></i></p>
+                        <p class="text-center text-success" style="font-size: 5.5rem;">
+                            <i class="fa-solid fa-envelope-circle-check"></i>
+                        </p>
                         <p class="text-center h5">Please check your email</p>
                         <p class="text-muted text-center">We've sent a code to your email.</p>
                         
+                        <!-- Error message display -->
+                        <div id="errorMessage" class="text-danger text-center"></div>
+                        
                         <!-- Form starts here -->
-                        <form action="/OTP" method="POST">
+                        <form id="otpForm">
                             <div class="row pt-4 pb-2">
                                 <div class="col-3">
                                     <input class="otp-letter-input" type="text" name="otp1" maxlength="1" required>
@@ -71,79 +77,145 @@
                             </div>
                         </form>
                         <!-- Form ends here -->
-                        
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
 
     <!-- Bootstrap 5 JavaScript and dependencies -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.0.1/js/bootstrap.bundle.min.js" integrity="sha512-sYJ4eCeQ3VxFxWB5f5zG/I4/fN4JCB9K1my+0Gm/6kUdzVIGS6yihIEl8hpAcgS61WSm5blKJucfMdwQHYBf2A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.0.1/js/bootstrap.bundle.min.js"></script>
+
     <script>
-        let timeLeft = 30; // 30 seconds countdown
-const countdownElement = document.getElementById('countdown');
-const resendLink = document.getElementById('resendLink');
-let timer; // Initialize timer variable
+         document.addEventListener('DOMContentLoaded', function() {
+            // Fetch the remaining time
+            fetch('/otp-remaining-time')
+                .then(response => response.json())
+                .then(data => {
+                    startTimer(data.remainingTime); // Start the timer from the remaining time
+                })
+                .catch(error => {
+                    console.error('Error fetching OTP remaining time:', error);
+                    startTimer(30); // Fallback to 30 seconds if there's an error
+                });
 
-// Function to start the timer
-function startTimer() {
-    timeLeft = 30;
-    resendLink.style.pointerEvents = "none";
-    resendLink.style.opacity = "0.5";
-    
-    timer = setInterval(() => {
-        if (timeLeft <= 0) {
-            clearInterval(timer);
-            resendLink.style.pointerEvents = "auto";
-            resendLink.style.opacity = "1";
-            resendLink.innerHTML = "Click to resend.";
-        } else {
-            countdownElement.innerHTML = timeLeft;
-            timeLeft--;
+            // Add event listeners to OTP inputs for automatic focus shifting
+            const otpInputs = document.querySelectorAll('.otp-letter-input');
+            otpInputs.forEach((input, index) => {
+                input.addEventListener('input', function() {
+                    if (input.value.length === 1 && index < otpInputs.length - 1) {
+                        otpInputs[index + 1].focus(); // Focus the next input
+                    }
+                });
+
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Backspace' && index > 0 && !input.value) {
+                        otpInputs[index - 1].focus(); // Focus the previous input if backspace is pressed
+                    }
+                });
+            });
+        });
+
+        function startTimer(duration) {
+            let timer = duration, seconds;
+            let countdownElement = document.getElementById('countdown');
+            let resendLink = document.getElementById('resendLink');
+
+            let interval = setInterval(function() {
+                seconds = timer % 60;
+                countdownElement.textContent = seconds < 10 ? '0' + seconds : seconds;
+
+                if (--timer < 0) {
+                    clearInterval(interval);
+                    countdownElement.textContent = '';
+                    resendLink.style.pointerEvents = 'auto';
+                    resendLink.style.opacity = '1';
+                    resendLink.textContent = 'Click to resend.';
+                }
+            }, 1000);
         }
-    }, 1000);
-}
 
-// Automatically move to next input field on keypress
-document.querySelectorAll('.otp-letter-input').forEach((input, index, array) => {
-    input.addEventListener('input', () => {
-        if (input.value.length === input.maxLength && index < array.length - 1) {
-            array[index + 1].focus();
-        }
-    });
-});
+        // Handle resend OTP click
+        document.getElementById('resendLink').addEventListener('click', function(e) {
+            e.preventDefault();
 
-// Handle the resend click (POST to /resendOTP)
-resendLink.addEventListener('click', function(e) {
-    e.preventDefault();
+            fetch('/resendOTP', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                alert('OTP resent successfully!');
+                startTimer(30); // Restart the timer
+            }).catch(error => {
+                console.error('There was a problem with the fetch operation:', error);
+            });
+        });
 
-    // Trigger the OTP resend functionality
-    fetch('/resendOTP', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        // Optionally send data if needed
-        body: JSON.stringify({ /* Any required data */ })
-    }).then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        // Optionally handle successful response
-        alert('OTP resent successfully!');
-        
-        // Restart the timer after resending OTP
-        clearInterval(timer);
-        startTimer(); // Restart the timer
-    }).catch(error => {
-        console.error('There was a problem with the fetch operation:', error);
-    });
-});
+        // Handle OTP form submission
+        document.getElementById('otpForm').addEventListener('submit', function(e) {
+            e.preventDefault();
 
-// Start the initial timer on page load
-startTimer();
+            const otp = Array.from(document.querySelectorAll('.otp-letter-input'))
+                .map(input => input.value)
+                .join('');
+
+            fetch('/OTP', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ otp })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '/success'; // Redirect on success
+                } else {
+                    document.getElementById('errorMessage').textContent = data.message;
+                }
+            })
+            .catch(error => {
+                console.error('There was a problem with the fetch operation:', error);
+            });
+        });
+
+
+
+        document.getElementById('otpForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                document.getElementById('errorMessage').innerText = ''; // Clear previous error message
+
+                const formData = new FormData(this);
+                const otpData = {
+                    otp1: formData.get('otp1'),
+                    otp2: formData.get('otp2'),
+                    otp3: formData.get('otp3'),
+                    otp4: formData.get('otp4')
+                };
+
+                fetch('/OTP', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(otpData)
+                }).then(response => response.json())
+                  .then(data => {
+                      if (data.success) {
+                          window.location.href = '/login';
+                      } else {
+                          document.getElementById('errorMessage').innerText = data.message || 'Invalid OTP, please try again';
+                      }
+                  }).catch(error => {
+                      console.error('Error during OTP verification:', error);
+                  });
+            })
+
     </script>
-        </body>
+</body>
+        
 </html>

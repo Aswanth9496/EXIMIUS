@@ -97,6 +97,7 @@ const registerUser = async (req, res) => {
         
          // Store OTP in session or temporary storage 
         req.session.otp = OTP;
+        req.session.otpTimestamp = Date.now();
        
         res.redirect('/OTP'); // Redirect to OTP page
         }
@@ -109,25 +110,23 @@ const registerUser = async (req, res) => {
     }
 }
 
+
 // Load OTP page
 const lodeOTPpage = async (req, res) => {
     try {
-        res.render('OTP.ejs',{message:''});
+        res.render('OTP.ejs', { message: '', startTimer: true });
     } catch (error) {
         console.log(error.message);
     }
 }
 
 
-//verifiying OTP
-const verifiyingOTP = async (req,res)=>{
+// Verifying OTP
+const verifiyingOTP = async (req, res) => {
     try {
-
         let OTP = req.body.otp1 + req.body.otp2 + req.body.otp3 + req.body.otp4;
-               
-             
+        
         if (req.session.otp === OTP) {
-
             const { name, email, password, mobile } = req.session.user;
              
             const newUser = new User({
@@ -138,44 +137,57 @@ const verifiyingOTP = async (req,res)=>{
                 verified: true // Set user as verified
             });
 
-             // Save the new user to the database
-             await newUser.save();
+            // Save the new user to the database
+            await newUser.save();
 
-              // Clear the session data
-              req.session.otp = null;
-              req.session.user=null;
-            
+            // Clear the session data
+            req.session.otp = null;
+            req.session.user = null;
 
-            res.redirect('/login');
-
-        }else{
-
-             // OTP is incorrect
-            res.render('OTP.ejs', { message: "Invalid OTP, please try again" });
+            res.json({ success: true });
+        } else {
+            res.json({ success: false, message: "Invalid OTP, please try again" });
         }
-
     } catch (error) {
         console.log(error.message);
+        res.json({ success: false, message: "An error occurred, please try again" });
     }
 };
 
 
-const resendOTP = async (req,res)=>{
-    try {
 
-       let newOTP = generateOTP();
-      
-       let email = req.session.user.email;
-       req.session.otp = newOTP;
-            
-       sendMail(email, newOTP);
-       res.render('OTP.ejs', { message: "otp resend sucessfull" });
+
+const resendOTP = async (req, res) => {
+    try {
+        let newOTP = generateOTP();
+        let email = req.session.user.email;
+        req.session.otp = newOTP;
+        req.session.otpTimestamp = Date.now();
+
+        // Send the new OTP
+        sendMail(email, newOTP);
+
+        // Indicate that OTP has been resent
+        res.render('OTP.ejs', { message: "OTP resend successful", startTimer: true });
 
     } catch (error) {
         console.log(error);
-        
+        res.render('OTP.ejs', { message: "An error occurred, please try again" });
+    }
+};
+
+
+const remainingtime = (req,res)=>{
+    const otpValidityDuration = 30 * 1000; // 30 seconds in milliseconds
+    if (req.session.otpTimestamp) {
+        const elapsedTime = Date.now() - req.session.otpTimestamp;
+        const remainingTime = Math.max(otpValidityDuration - elapsedTime, 0);
+        res.json({ remainingTime: Math.ceil(remainingTime / 1000) });
+    } else {
+        res.json({ remainingTime: 0 });
     }
 }
+
 
 
 module.exports ={
@@ -183,5 +195,6 @@ module.exports ={
     verifiyingOTP,
     loadRegister,
     registerUser,
-    resendOTP
+    resendOTP,
+    remainingtime
 }

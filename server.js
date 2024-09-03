@@ -31,9 +31,11 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 
-// Body parser middleware
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+
+// Body parser middleware (replaced with express built-in methods)
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
 
 // Set view engine
 app.set('view engine', 'ejs');
@@ -50,6 +52,7 @@ dbConnect();
 // Use routes
 app.use('/', userRoutes);
 app.use('/admin', adminRoutes);
+
 
 // Start server
 const PORT = process.env.PORT || 5000;

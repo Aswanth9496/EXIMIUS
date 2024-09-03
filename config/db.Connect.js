@@ -1,17 +1,13 @@
 const mongoose = require('mongoose');
 
-  // MongoDB connection
-const dbConnect =async ()=>{
-    
+// MongoDB connection
+const dbConnect = async () => {
     try {
-
-      mongoose.connect("mongodb://localhost:27017/Eximius") 
-      console.log('connected to database');
-      
+        await mongoose.connect(process.env.MONGODB_URI);
+        console.log('Connected to database');
     } catch (error) {
         console.log(error);
-        
     }
-}
+};
 
 module.exports = dbConnect;

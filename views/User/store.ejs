@@ -62,6 +62,7 @@
     <!-- Breadcrumb Section Begin -->
     <section class="breadcrumb-option">
         <div class="container">
+            
             <div class="row">
                 <div class="col-lg-12">
                     <div class="breadcrumb__text">
@@ -80,6 +81,7 @@
     <!-- Shop Section Begin -->
     <section class="shop spad">
         <div class="container">
+            
             <div class="row">
                 <div class="col-lg-3">
                     <div class="shop__sidebar">
@@ -114,6 +116,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                
                                 <div class="card">
                                     <div class="card-heading">
                                         <a data-toggle="collapse" data-target="#collapseTwo">Branding</a>
@@ -136,33 +139,59 @@
                                         </div>
                                     </div>
                                 </div>
+                                
+                                
                             </div>
                         </div>
+                        
                     </div>
                 </div>
                 <div class="col-lg-9">
+                    <div class="shop-product-options mb-4">
+                        <div class="row align-items-center">
+                            <div class="col-lg-6 col-md-6 col-sm-6">
+                                <div class="shop-product-options-left">
+                                    <p class="mb-0">Showing 1–12 of 126 results</p>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 col-md-6 col-sm-6 text-end">
+                                <div class="shop-product-options-right d-flex align-items-center justify-content-end">
+                                    <label for="sort-by" class="mb-0" style="margin-right: 10px;">Sort by:</label>
+                                    <select id="sort-by" class="form-select">
+                                        <option value="low-to-high">Low To High</option>
+                                        <option value="high-to-Low">High To Low </option>
+                                        <option value="aA - zZ ">aA - zZ </option>
+                                        <option value="zZ - aA ">zZ - aA </option>
+                                        
+                                    </select>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
                     <div id="product-list">
-                        <div class="row">
+                        <div class="row g-4">
                             <% product.forEach(product => { %>
                                 <div class="col-lg-4 col-md-6 col-sm-6">
-                                    <a href="/product-details/<%= product._id %>" style="text-decoration: none; color: inherit;">
-                                        <div class="product__item" style="text-align: center;">
-                                            <div class="product__item__pic" style="position: relative; overflow: hidden;">
+                                    <a href="/product-details/<%= product._id %>" class="text-decoration-none text-dark">
+                                        <div class="product-item text-center">
+                                            <div class="product-item-pic position-relative overflow-hidden">
                                                 <img src="/productIMG/<%= product.productimages[0] %>" alt="<%= product.name %>"
-                                                    class="product-img"
-                                                    style="width: 100%; max-width: 300px; height: 250px; object-fit: cover; transition: transform 0.5s ease;">
+                                                    class="img-fluid product-img"
+                                                    style="width: 100%; height: 250px; object-fit: cover; transition: transform 0.5s ease;">
                                             </div>
-                                            <div class="product__item__text" style="padding: 10px 0;">
-                                                <h6 style="margin: 0; font-size: 16px;"><%= product.name %></h6>
-                                                <h5 style="margin: 0; font-size: 18px; color: #333;">$<%= product.price.toFixed(2) %></h5>
+                                            <div class="product-item-text py-3">
+                                                <h6 class="mb-1" style="font-size: 16px;"><%= product.name %></h6>
+                                                <h5 class="mb-0" style="font-size: 18px; color: #333;">$<%= product.price.toFixed(2) %></h5>
                                             </div>
                                         </div>
                                     </a>
-                                </div>  
+                                </div>
                             <% }) %>
                         </div>
                     </div>
                 </div>
+                
             </div>
         </div>
     </section>

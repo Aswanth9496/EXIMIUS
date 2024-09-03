@@ -2,6 +2,8 @@ const Categories = require('../../models/categoryModel');
 const Brands =require('../../models/brandModel');
 const products =require('../../models/productsModel');
 
+
+
 const LoadStorePage = async (req, res) => {
     try {
         const { search, categories, brands } = req.query;

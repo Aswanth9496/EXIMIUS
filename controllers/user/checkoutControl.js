@@ -3,7 +3,7 @@ const Address = require('../../models/addressModel');
 const Cart = require('../../models/cartModel');
 const User = require('../../models/userModel');
 const Order = require("../../models/ordersModel");
-
+const Product =require("../../models/productsModel");
 
 
 // load checkout page
@@ -15,7 +15,18 @@ const loadCheckout = async (req,res)=>{
         const addresses  = await Address.find({ user_id: userId });
         const cart = await Cart.findOne({ user: userId }).populate('products.product');
 
-       res.render('checkout',{ cart,addresses : addresses || []});
+        let totalPrice = 0;
+
+        if (cart) {
+            // Calculate the total price dynamically
+            cart.products.forEach(item => {
+              totalPrice += item.product.price * item.quantity;
+            });
+          }
+
+       
+
+       res.render('checkout',{ cart, totalPrice,addresses : addresses || []});
 
 
     } catch (error) {
@@ -60,34 +71,6 @@ const addAddress = async (req, res) => {
 
 
 
-// update address
-const updateAddress = async (req, res) => {
-    try {
-        const userId = req.session.user.id; 
-        const user = await User.findOne({ _id: userId });
-        console.log(req.body);
-        
-
-        const newAddress = new Address({
-            user_id: userId,
-            addressName: req.body.addressName,
-            addressEmail: req.body.addressEmail,
-            addressMobile: req.body.addressMobile,
-            addressHouse: req.body.addressHouse,
-            addressStreet: req.body.addressStreet,
-            addressCity: req.body.addressCity,
-            addressDistrict: req.body.addressDistrict,
-            addressState: req.body.addressState,
-            addressPin: req.body.addressPin
-        });
-
-        await newAddress.save();
-        res.json({ success: true });
-    } catch (error) {
-        console.error('Error adding address:', error);
-        res.status(500).json({ success: false, message: 'Server Error' });
-    }
-};
 
 
 // delect address
@@ -162,6 +145,8 @@ const placeOrder = async (req, res) => {
         // Save the order to the database
         await newOrder.save();
 
+         
+
         // Clear the user's cart
         await Cart.updateOne(
             { user: userId },
@@ -171,6 +156,7 @@ const placeOrder = async (req, res) => {
         // Save the orderId in the session
         req.session.orderId = newOrder.orderId;
 
+       
         res.json({ success: true, orderId: newOrder.orderId });
     } catch (error) {
         console.error('Error placing order:', error);
@@ -183,10 +169,27 @@ const placeOrder = async (req, res) => {
 // order details
 const orderDetails = async (req,res)=>{
     try {
-        const orderId = req.session.orderId;
 
+        const orderId = req.session.orderId;
         const order = await Order.findOne({ orderId }).populate('products');
 
+        for (let item of order.products) {
+            const productId = item.productId._id;
+            const orderedQuantity = item.quantity;
+
+            // Find the product in the Product collection and reduce the quantity
+            const product = await Product.findById(productId);
+
+            if (product) {
+                product.quantity -= orderedQuantity; // Reduce the stock by the ordered quantity
+                if (product.quantity < 0) {
+                    product.quantity = 0; // Ensure the quantity doesn't go negative
+                }
+                await product.save(); // Save the updated product
+            } else {
+                console.log(`Product with ID ${productId} not found.`);
+            }
+        }
 
       res.render('orderDetails',{order,addressdata: order.address});  
     } catch (error) {
@@ -203,7 +206,7 @@ const orderDetails = async (req,res)=>{
 module.exports ={
     loadCheckout,
     addAddress,
-    updateAddress,
+   
     deleteAddress,
     placeOrder,
     orderDetails

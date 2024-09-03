@@ -391,13 +391,21 @@
                                 <tbody>
                                     <% orders.forEach(order => { %>
                                         <tr>
-                                            <td><%= order.orderId %></td>
+                                            <td><a href="/loadProfileOrderDetails/<%= order._id %>"><%= order.orderId %></a></td>
+                                          
                                             <td><%= new Date(order.orderDate).toLocaleDateString() %></td>
-                                            <td><%= order.paymentStatus %></td>
+                                            <td><%= order.products[0].status %></td>
                                             <td>&#8377;<%= order.totalAmount %></td>
                                             <td>
-                                                <a href="/order/<%= order._id %>" class="btn btn-outline-primary btn-sm">View</a>
+                                                <% if (order.products[0].status === 'Cancelled') { %>
+                                                    <!-- Do not show any button if the status is 'Cancelled' -->
+                                                <% } else if (order.products[0].status === 'Delivered') { %>
+                                                    <button data-action="/returnOrder/<%= order._id %>" class="btn btn-outline-primary btn-sm action-btn">Return</button>
+                                                <% } else { %>
+                                                    <button data-action="/cancelOrder/<%= order._id %>" class="btn btn-outline-danger btn-sm action-btn">Cancel</button>
+                                                <% } %>
                                             </td>
+                                            
                                         </tr>
                                     <% }) %>
                                 </tbody>
@@ -409,5 +417,33 @@
         </div>
     </div>
 </body>
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.action-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const actionUrl = this.getAttribute('data-action');
+
+                Swal.fire({
+                    title: 'Are you sure?',
+                   
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, proceed!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = actionUrl;
+                    }
+                });
+            });
+        });
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <%- include('../Layout/user/footer.ejs') %>

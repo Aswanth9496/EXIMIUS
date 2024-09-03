@@ -2,6 +2,10 @@ const express = require('express');
 const router = express.Router();
 const passport = require('passport');
 
+
+const userAuthentication = require('../Middlewares/userAuthentication');
+
+
 // Imported the userController module which contains the route handler functions
 const userController = require('../controllers/user/userControl');
 const userRegistration = require('../controllers/user/userRigistration');
@@ -31,6 +35,7 @@ router.post('/register', userRegistration.registerUser);
 router.get('/OTP', userRegistration.lodeOTPpage);
 router.post('/OTP', userRegistration.verifiyingOTP);
 router.post('/resendOTP',userRegistration.resendOTP);
+router.get('/otp-remaining-time',userRegistration.remainingtime);
 
 // Google OAuth routes
 router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
@@ -49,28 +54,31 @@ router.get('/product-details/:id',storeController.productDetails);
 
 
 // cart 
-router.get('/cart', cartController.loadCart);
-router.post('/add_to_cart',cartController.addToCart);
+router.get('/cart',userAuthentication, cartController.loadCart);
+router.post('/add_to_cart',userAuthentication,cartController.addToCart);
 router.delete('/removeFromCart/:id',cartController.deleteFromCart);
 router.post('/updateCart',cartController.updateCart)
 
 
 // profile
-router.get('/profile',userProfileController.loadProfile);
+router.get('/profile',userAuthentication,userProfileController.loadProfile);
 router.post('/changePassword',userProfileController.updateUserPassword);
 router.get('/updateProfile',userProfileController.updateProfile);
 
 //profile address
-router.get('/address',userAddressController.loadAddress);
+router.get('/address',userAuthentication,userAddressController.loadAddress);
 router.post('/addAddress',userAddressController.addAddress);
 router.delete('/deleteAddress/:id',userAddressController.deleteAddress);
 router.post('/updateAddress',userAddressController.updateAddress);
 
-router.get('/orderList',orderListController.loadOrderList);
+router.get('/orderList',userAuthentication,orderListController.loadOrderList);
+router.get('/loadProfileOrderDetails/:id',orderListController.loadOrderDetails);
+router.get('/returnOrder/:id',orderListController.returnOrder);
+router.get('/cancelOrder/:id',orderListController.cancelOrder);
 
 
 // check out
-router.get('/checkout',checkoutController.loadCheckout);
+router.get('/checkout',userAuthentication,checkoutController.loadCheckout);
 router.post('/CheckoutAddaddress',checkoutController.addAddress);
 router.delete('/CheckoutDeleteAddress/:id',checkoutController.deleteAddress);
 
