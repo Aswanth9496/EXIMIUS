@@ -81,27 +81,34 @@
     <!-- Shop Section Begin -->
     <section class="shop spad">
         <div class="container">
-            
             <div class="row">
                 <div class="col-lg-3">
                     <div class="shop__sidebar">
+                        <!-- Search Section -->
                         <div class="shop__sidebar__search">
-                            <form action="/store" method="GET">
+                            <form id="filter-form" action="/store" method="GET">
                                 <input type="text" id="search" name="search" placeholder="Search by name...">
-                                <button type="submit"><span class="icon_search"></span></button>
+                                <div id="filters">
+                                    <input type="hidden" id="selected-categories" name="categories">
+                                    <input type="hidden" id="selected-brands" name="brands">
+                                    <input type="hidden" id="sort-order" name="sort">
+                                </div>
+                                <button type="submit" style="display: none;"><span class="icon_search"></span></button>
                             </form>
                         </div>
-    
+                        
+                        <!-- Filters and Sort Options -->
                         <div class="shop__sidebar__accordion">
                             <div class="accordion" id="accordionExample">
+                                <!-- Categories Section -->
                                 <div class="card">
                                     <div class="card-heading">
-                                        <a data-toggle="collapse" data-target="#collapseOne">Categories</a>
+                                        <a data-toggle="collapse" data-target="#collapseCategories">Categorie</a>
                                     </div>
-                                    <div id="collapseOne" class="collapse show" data-parent="#accordionExample">
+                                    <div id="collapseCategories" class="collapse show" data-parent="#accordionExample">
                                         <div class="card-body">
-                                            <div class="shop__sidebar__categories">
-                                                <ul class="nice-scroll">
+                                            <div class="shop__sidebar__brand">
+                                                <ul>
                                                     <% categorie.forEach(category => { %>
                                                         <li>
                                                             <label>
@@ -117,11 +124,12 @@
                                     </div>
                                 </div>
                                 
+                                <!-- Branding Section -->
                                 <div class="card">
                                     <div class="card-heading">
-                                        <a data-toggle="collapse" data-target="#collapseTwo">Branding</a>
+                                        <a data-toggle="collapse" data-target="#collapseBrands">Branding</a>
                                     </div>
-                                    <div id="collapseTwo" class="collapse show" data-parent="#accordionExample">
+                                    <div id="collapseBrands" class="collapse show" data-parent="#accordionExample">
                                         <div class="card-body">
                                             <div class="shop__sidebar__brand">
                                                 <ul>
@@ -139,33 +147,53 @@
                                         </div>
                                     </div>
                                 </div>
-                                
-                                
+                            
+                                <div class="card">
+                                    <div class="card-heading">
+                                        <a data-toggle="collapse" data-target="#collapseSort">Sort by</a>
+                                    </div>
+                                    <div id="collapseSort" class="collapse show" data-parent="#accordionExample">
+                                        <div class="card-body">
+                                            <div class="shop__sidebar__brand">
+                                                <ul>
+                                                    <li>
+                                                        <label>
+                                                            <input type="radio" name="sort" value="low-to-high"> Low to High
+                                                        </label>
+                                                    </li>
+                                                    <li>
+                                                        <label>
+                                                            <input type="radio" name="sort" value="high-to-low"> High to Low
+                                                        </label>
+                                                    </li>
+                                                    <li>
+                                                        <label>
+                                                            <input type="radio" name="sort" value="a-to-z"> aA to zZ
+                                                        </label>
+                                                    </li>
+                                                    <li>
+                                                        <label>
+                                                            <input type="radio" name="sort" value="z-to-a"> zZ to aA
+                                                        </label>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        
                     </div>
                 </div>
+    
+                <!-- Products Display -->
                 <div class="col-lg-9">
                     <div class="shop-product-options mb-4">
                         <div class="row align-items-center">
                             <div class="col-lg-6 col-md-6 col-sm-6">
                                 <div class="shop-product-options-left">
-                                    <p class="mb-0">Showing 1–12 of 126 results</p>
+                                    <p class="mb-0">Total  <%=  totalResults%> results</p>
                                 </div>
-                            </div>
-                            <div class="col-lg-6 col-md-6 col-sm-6 text-end">
-                                <div class="shop-product-options-right d-flex align-items-center justify-content-end">
-                                    <label for="sort-by" class="mb-0" style="margin-right: 10px;">Sort by:</label>
-                                    <select id="sort-by" class="form-select">
-                                        <option value="low-to-high">Low To High</option>
-                                        <option value="high-to-Low">High To Low </option>
-                                        <option value="aA - zZ ">aA - zZ </option>
-                                        <option value="zZ - aA ">zZ - aA </option>
-                                        
-                                    </select>
-                                </div>
-                                
                             </div>
                         </div>
                     </div>
@@ -191,12 +219,11 @@
                         </div>
                     </div>
                 </div>
-                
             </div>
         </div>
     </section>
     
-    <!-- Footer Section Begin -->
+    <!-- Footer Section -->
     <footer class="footer">
         <div class="container">
             <div class="row">
@@ -225,7 +252,7 @@
                 </div>
                 <div class="col-lg-3 offset-lg-1 col-md-6 col-sm-6">
                     <div class="footer__widget">
-                        <h6>NewLetter</h6>
+                        <h6>Newsletter</h6>
                         <div class="footer__newslatter">
                             <p>Be the first to know about new arrivals, look books, sales & promos!</p>
                             <form action="#">
@@ -239,7 +266,7 @@
         </div>
     </footer>
     
-    <!-- Search Begin -->
+    <!-- Search Modal -->
     <div class="search-model">
         <div class="h-100 d-flex align-items-center justify-content-center">
             <div class="search-close-switch">+</div>
@@ -248,11 +275,11 @@
             </form>
         </div>
     </div>
-    <!-- Search End -->
     
+    <!-- JavaScript for hover effect and filter handling -->
     <script>
-        // JavaScript for hover effect
-        document.querySelectorAll('.product__item__pic').forEach(pic => {
+        // Hover effect for product images
+        document.querySelectorAll('.product-item-pic').forEach(pic => {
             pic.addEventListener('mouseover', function() {
                 this.querySelector('img').style.transform = 'scale(1.1)';
             });
@@ -261,19 +288,53 @@
             });
         });
     
-        document.querySelectorAll('.category-filter, .brand-filter').forEach(filter => {
-            filter.addEventListener('change', function() {
-                const selectedCategories = Array.from(document.querySelectorAll('.category-filter:checked')).map(cb => cb.value);
-                const selectedBrands = Array.from(document.querySelectorAll('.brand-filter:checked')).map(cb => cb.value);
-    
-                const url = new URL(window.location.href);
-                url.searchParams.set('categories', selectedCategories.join(','));
-                url.searchParams.set('brands', selectedBrands.join(','));
-    
-                window.location.href = url.toString();
-            });
-        });
+       
+        document.addEventListener('DOMContentLoaded', function () {
+    const filterForm = document.getElementById('filter-form');
+    const categoriesInput = document.getElementById('selected-categories');
+    const brandsInput = document.getElementById('selected-brands');
+    const sortInput = document.getElementById('sort-order');
+
+    let submitting = false;
+
+    // Function to update hidden fields and submit form
+    function updateFilters() {
+        if (submitting) return;  // Prevent multiple submissions
+
+        submitting = true;
+
+        const selectedCategories = Array.from(document.querySelectorAll('.category-filter:checked')).map(el => el.value);
+        const selectedBrands = Array.from(document.querySelectorAll('.brand-filter:checked')).map(el => el.value);
+        const selectedSort = document.querySelector('input[name="sort"]:checked')?.value || '';
+
+        categoriesInput.value = selectedCategories.join(',');
+        brandsInput.value = selectedBrands.join(',');
+        sortInput.value = selectedSort;
+
+        // Submit the form
+        filterForm.submit();
+    }
+
+    // Attach event listeners
+    document.querySelectorAll('.category-filter').forEach(el => {
+        el.addEventListener('change', updateFilters);
+    });
+
+    document.querySelectorAll('.brand-filter').forEach(el => {
+        el.addEventListener('change', updateFilters);
+    });
+
+    document.querySelectorAll('input[name="sort"]').forEach(el => {
+        el.addEventListener('change', updateFilters);
+    });
+
+    // Reset submitting flag after form submission
+    filterForm.addEventListener('submit', () => {
+        submitting = false;
+    });
+});
+
+
     </script>
     
-
     <%- include('../Layout/user/footer.ejs') -%>
