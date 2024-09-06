@@ -1,5 +1,8 @@
  const Orders = require('../../models/ordersModel');
 
+ const Product  = require('../../models/productsModel');
+
+
 
 // load orders
 const loadOrders = async (req,res)=>{
@@ -46,8 +49,7 @@ const updateOrderStatus = async (req, res) => {
         const updatedOrder = await Orders.findOne(
             { 
                 orderId:orderId });
-console.log(updatedOrder,'its your updated order');
-console.log(productId,'your produtct id is');
+
 
  const productindext=updatedOrder.products.findIndex(pro=>pro._id.toString()===productId)
 
@@ -66,8 +68,62 @@ updatedOrder.products[productindext].status=status
 };
 
 
+
+
+
+const acceptReturnRequest = async (req, res) => {
+    try {
+        const { productId, orderId } = req.body;
+        console.log(orderId);
+        console.log(productId);
+        
+
+
+        // Find the order and update the product status and return request
+        const order = await Orders.findOneAndUpdate(
+            { _id: orderId, 'products.productId': productId, 'products.return_request': true }, // Ensure return was requested
+            { 
+                $set: { 
+                    'products.$.status': 'Returned', 
+                    'products.$.return_request': false 
+                } 
+            },
+            { new: true } // Return the updated document
+        );
+
+        if (!order) {
+            return res.status(404).json({ success: false, message: 'Order or product not found.' });
+        }
+
+        // Find the returned product
+        const returnedProduct = order.products.find(p => p.productId.toString() === productId);
+        if (!returnedProduct) {
+            return res.status(404).json({ success: false, message: 'Product not found in the order.' });
+        }
+
+        // Get the quantity of the returned product
+        const returnedQuantity = returnedProduct.quantity;
+
+        // Update the stock in the Product collection
+        await Product.findByIdAndUpdate(
+            productId,
+            { $inc: { quantity: returnedQuantity } } // Increment the product's quantity
+        );
+
+        // Return success response
+        res.json({ success: true, message: 'Return request accepted successfully' });
+
+    } catch (error) {
+        // Handle server error
+        console.error('Error accepting return request:', error);
+        res.status(500).json({ success: false, message: 'Internal server error.' });
+    }
+};
+
+
 module.exports ={
     loadOrders,
     orderDetails,
-    updateOrderStatus
+    updateOrderStatus,
+    acceptReturnRequest
 };

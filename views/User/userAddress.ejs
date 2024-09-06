@@ -337,6 +337,13 @@
     color: #007bff;
     transform: translateX(5px);
 }   
+
+.error-message {
+    color: red;
+    font-size: 0.875em;
+    margin-top: 0.25em;
+}
+
     </style>
 
 
@@ -363,7 +370,7 @@
                 <ul class="list-unstyled">
                     <li><a href="/profile">Account Details</a></li>
                     <li><a href="/orderList">Orders</a></li>
-                    <li><a href="#">Wallet</a></li>
+                    <li><a href="/wallet">Wallet</a></li>
                     <li><a href="#">Downloads</a></li>
                     <li><a href="/address">Addresses</a></li>
                     <li><a href="/logout">Sign Out</a></li>
@@ -412,116 +419,69 @@
                 </div>
             </div>
             
-
-    <!-- Add Address Modal -->
-    <div id="addAddressModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="addAddressModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addAddressModalLabel">Add New Address</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form id="addAddressForm" action="/addAddress" method="POST">
-                        <div class="form-group">
-                            <label for="addressName">Full Name</label>
-                            <input type="text" class="form-control" id="addressName" name="addressName" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="addressMobile">Mobile Number</label>
-                            <input type="tel" class="form-control" id="addressMobile" name="addressMobile" pattern="[0-9]{10}" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="addressHouse">House/Apartment</label>
-                            <input type="text" class="form-control" id="addressHouse" name="addressHouse" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="addressStreet">Street Address</label>
-                            <input type="text" class="form-control" id="addressStreet" name="addressStreet" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="addressCity">City</label>
-                            <input type="text" class="form-control" id="addressCity" name="addressCity" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="addressDistrict">District</label>
-                            <input type="text" class="form-control" id="addressDistrict" name="addressDistrict" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="addressState">State/Province</label>
-                            <input type="text" class="form-control" id="addressState" name="addressState" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="addressPin">Postal Code</label>
-                            <input type="text" class="form-control" id="addressPin" name="addressPin" pattern="[0-9]{5,6}" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Add Address</button>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                </div>
+<!-- Add Address Modal -->
+<div id="addAddressModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="addAddressModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addAddressModalLabel">Add New Address</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addAddressForm" action="/addAddress" method="POST">
+                    <div class="form-group">
+                        <label for="addressName">Full Name</label>
+                        <input type="text" class="form-control" id="addressName" name="addressName">
+                        <span class="error-message" id="addressNameError"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="addressMobile">Mobile Number</label>
+                        <input type="tel" class="form-control" id="addressMobile" name="addressMobile">
+                        <span class="error-message" id="addressMobileError"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="addressHouse">House/Apartment</label>
+                        <input type="text" class="form-control" id="addressHouse" name="addressHouse">
+                        <span class="error-message" id="addressHouseError"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="addressStreet">Street Address</label>
+                        <input type="text" class="form-control" id="addressStreet" name="addressStreet">
+                        <span class="error-message" id="addressStreetError"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="addressCity">City</label>
+                        <input type="text" class="form-control" id="addressCity" name="addressCity">
+                        <span class="error-message" id="addressCityError"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="addressDistrict">District</label>
+                        <input type="text" class="form-control" id="addressDistrict" name="addressDistrict">
+                        <span class="error-message" id="addressDistrictError"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="addressState">State/Province</label>
+                        <input type="text" class="form-control" id="addressState" name="addressState">
+                        <span class="error-message" id="addressStateError"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="addressPin">Postal Code</label>
+                        <input type="text" class="form-control" id="addressPin" name="addressPin">
+                        <span class="error-message" id="addressPinError"></span>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Address</button>
+                </form>
+                
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
-    
-    <!-- Edit Address Modal -->
-    <div id="editAddressModal" class="modal fade" role="dialog">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title">Edit Address</h4>
-                </div>
-                <div class="modal-body">
-                    <form id="editAddressForm">
-                        
-                        <input type="hidden" id="editAddressId">
-                        <div class="form-group">
-                            <label for="editAddressName">Name</label>
-                            <input type="text" class="form-control" id="editAddressName" name="addressName" required>
-                        </div>
-                       
-                        <div class="form-group">
-                            <label for="editAddressMobile">Mobile Number</label>
-                            <input type="tel" class="form-control" id="editAddressMobile" name="addressMobile" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="editAddressHouse">House</label>
-                            <input type="text" class="form-control" id="editAddressHouse" name="addressHouse" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="editAddressStreet">Street</label>
-                            <input type="text" class="form-control" id="editAddressStreet" name="addressStreet" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="editAddressCity">City</label>
-                            <input type="text" class="form-control" id="editAddressCity" name="addressCity" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="editAddressDistrict">District</label>
-                            <input type="text" class="form-control" id="editAddressDistrict" name="addressDistrict" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="editAddressState">State</label>
-                            <input type="text" class="form-control" id="editAddressState" name="addressState" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="editAddressPin">Pin</label>
-                            <input type="text" class="form-control" id="editAddressPin" name="addressPin" required>
-                        </div>
-                        <button type="button" class="btn btn-primary" id="updateAddressBtn">Save changes</button>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>  
+</div>
+
 
 <!-- Edit Address Modal -->
 <div id="editAddressModal" class="modal fade" role="dialog">
@@ -532,42 +492,49 @@
                 <h4 class="modal-title">Edit Address</h4>
             </div>
             <div class="modal-body">
-                <form id="editAddressForm" action="/updateAddress" method="POST">
-                    <!-- Hidden input to store the address ID -->
-                    <input type="hidden" id="editAddressId" name="id">
+                <form id="editAddressForm">
+                    <input type="hidden" id="editAddressId">
                     <div class="form-group">
                         <label for="editAddressName">Name</label>
-                        <input type="text" class="form-control" id="editAddressName" name="addressName" required>
+                        <input type="text" class="form-control" id="editAddressName" name="addressName">
+                        <span class="error-message text-danger"></span>
                     </div>
                     <div class="form-group">
                         <label for="editAddressMobile">Mobile Number</label>
-                        <input type="tel" class="form-control" id="editAddressMobile" name="addressMobile" required>
+                        <input type="tel" class="form-control" id="editAddressMobile" name="addressMobile">
+                        <span class="error-message text-danger"></span>
                     </div>
                     <div class="form-group">
                         <label for="editAddressHouse">House</label>
-                        <input type="text" class="form-control" id="editAddressHouse" name="addressHouse" required>
+                        <input type="text" class="form-control" id="editAddressHouse" name="addressHouse">
+                        <span class="error-message text-danger"></span>
                     </div>
                     <div class="form-group">
                         <label for="editAddressStreet">Street</label>
-                        <input type="text" class="form-control" id="editAddressStreet" name="addressStreet" required>
+                        <input type="text" class="form-control" id="editAddressStreet" name="addressStreet">
+                        <span class="error-message text-danger"></span>
                     </div>
                     <div class="form-group">
                         <label for="editAddressCity">City</label>
-                        <input type="text" class="form-control" id="editAddressCity" name="addressCity" required>
+                        <input type="text" class="form-control" id="editAddressCity" name="addressCity">
+                        <span class="error-message text-danger"></span>
                     </div>
                     <div class="form-group">
                         <label for="editAddressDistrict">District</label>
-                        <input type="text" class="form-control" id="editAddressDistrict" name="addressDistrict" required>
+                        <input type="text" class="form-control" id="editAddressDistrict" name="addressDistrict">
+                        <span class="error-message text-danger"></span>
                     </div>
                     <div class="form-group">
                         <label for="editAddressState">State</label>
-                        <input type="text" class="form-control" id="editAddressState" name="addressState" required>
+                        <input type="text" class="form-control" id="editAddressState" name="addressState">
+                        <span class="error-message text-danger"></span>
                     </div>
                     <div class="form-group">
                         <label for="editAddressPin">Pin</label>
-                        <input type="text" class="form-control" id="editAddressPin" name="addressPin" required>
+                        <input type="text" class="form-control" id="editAddressPin" name="addressPin">
+                        <span class="error-message text-danger"></span>
                     </div>
-                    <button type="submit" class="btn btn-primary">Save changes</button>
+                    <button type="button" class="btn btn-primary" id="updateAddressBtn">Save changes</button>
                 </form>
             </div>
             <div class="modal-footer">
@@ -576,6 +543,7 @@
         </div>
     </div>
 </div>
+
    
 </body>
 
@@ -646,53 +614,169 @@
 }
 
 
-function editAddress(address) {
-    const addressData = JSON.parse(address);
 
-    // Populate the form fields with address data
-    document.getElementById('editAddressId').value = addressData._id;
-    document.getElementById('editAddressName').value = addressData.addressName;
-    document.getElementById('editAddressMobile').value = addressData.addressMobile;
-    document.getElementById('editAddressHouse').value = addressData.addressHouse;
-    document.getElementById('editAddressStreet').value = addressData.addressStreet;
-    document.getElementById('editAddressCity').value = addressData.addressCity;
-    document.getElementById('editAddressDistrict').value = addressData.addressDistrict;
-    document.getElementById('editAddressState').value = addressData.addressState;
-    document.getElementById('editAddressPin').value = addressData.addressPin;
-    
-    // Show the modal
-    $('#editAddressModal').modal('show');
-}
 
+// Event listener for form submission
 document.getElementById('updateAddressBtn').addEventListener('click', function() {
-    Swal.fire({
-        title: 'Are you sure?',
-        text: 'Do you want to save the changes?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, save changes!',
-        cancelButtonText: 'Cancel'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const id = document.getElementById('editAddressId').value;
-            const addressName = document.getElementById('editAddressName').value;
-            const addressMobile = document.getElementById('editAddressMobile').value;
-            const addressHouse = document.getElementById('editAddressHouse').value;
-            const addressStreet = document.getElementById('editAddressStreet').value;
-            const addressCity = document.getElementById('editAddressCity').value;
-            const addressDistrict = document.getElementById('editAddressDistrict').value;
-            const addressState = document.getElementById('editAddressState').value;
-            const addressPin = document.getElementById('editAddressPin').value;
+    const form = document.getElementById('editAddressForm');
+    const addressId = document.getElementById('editAddressId').value;
+    const addressName = document.getElementById('editAddressName').value;
+    const addressMobile = document.getElementById('editAddressMobile').value;
+    const addressHouse = document.getElementById('editAddressHouse').value;
+    const addressStreet = document.getElementById('editAddressStreet').value;
+    const addressCity = document.getElementById('editAddressCity').value;
+    const addressDistrict = document.getElementById('editAddressDistrict').value;
+    const addressState = document.getElementById('editAddressState').value;
+    const addressPin = document.getElementById('editAddressPin').value;
 
-            fetch('/updateAddress', {
+    let valid = true;
+
+    // Clear previous error messages
+    document.querySelectorAll('.error-message').forEach(span => span.textContent = '');
+
+    // Validation
+    if (!/^[a-zA-Z\s]+$/.test(addressName)) {
+        document.getElementById('editAddressName').nextElementSibling.textContent = 'Name should only contain letters.';
+        valid = false;
+    }
+    if (!/^[\d]{10}$/.test(addressMobile)) {
+        document.getElementById('editAddressMobile').nextElementSibling.textContent = 'Mobile Number should be 10 digits.';
+        valid = false;
+    }
+    if (!addressHouse) {
+        document.getElementById('editAddressHouse').nextElementSibling.textContent = 'House/Apartment is required.';
+        valid = false;
+    }
+    if (!addressStreet) {
+        document.getElementById('editAddressStreet').nextElementSibling.textContent = 'Street Address is required.';
+        valid = false;
+    }
+    if (!/^[a-zA-Z\s]+$/.test(addressCity)) {
+        document.getElementById('editAddressCity').nextElementSibling.textContent = 'City should only contain letters.';
+        valid = false;
+    }
+    if (!/^[a-zA-Z\s]+$/.test(addressDistrict)) {
+        document.getElementById('editAddressDistrict').nextElementSibling.textContent = 'District should only contain letters.';
+        valid = false;
+    }
+    if (!addressState) {
+        document.getElementById('editAddressState').nextElementSibling.textContent = 'State/Province is required.';
+        valid = false;
+    }
+    if (!/^[\d]{5,6}$/.test(addressPin)) {
+        document.getElementById('editAddressPin').nextElementSibling.textContent = 'Postal Code should be 5 or 6 digits.';
+        valid = false;
+    }
+
+    if (!valid) {
+        return;
+    }
+
+    // Submit form via fetch
+    fetch(`/updateAddress/${addressId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            addressName,
+            addressMobile,
+            addressHouse,
+            addressStreet,
+            addressCity,
+            addressDistrict,
+            addressState,
+            addressPin
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            $('#editAddressModal').modal('hide');
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: 'Address updated successfully.',
+            });
+            // Optionally, refresh the address list or update UI
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to update address.',
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to update address.',
+        });   
+     });
+});
+
+
+document.getElementById('addAddressForm').addEventListener('submit', async function(event) {
+    event.preventDefault(); // Prevent the default form submission
+
+    // Clear previous error messages
+    document.querySelectorAll('.error-message').forEach(span => span.textContent = '');
+
+    // Get form values
+    const addressName = document.getElementById('addressName').value.trim();
+    const addressMobile = document.getElementById('addressMobile').value.trim();
+    const addressHouse = document.getElementById('addressHouse').value.trim();
+    const addressStreet = document.getElementById('addressStreet').value.trim();
+    const addressCity = document.getElementById('addressCity').value.trim();
+    const addressDistrict = document.getElementById('addressDistrict').value.trim();
+    const addressState = document.getElementById('addressState').value.trim();
+    const addressPin = document.getElementById('addressPin').value.trim();
+
+    let isValid = true;
+
+    // Validate each field and show error messages
+    if (!addressName || !/^[A-Za-z\s]+$/.test(addressName)) {
+        document.getElementById('addressNameError').textContent = 'Full Name (Only letters and spaces)';
+        isValid = false;
+    }
+    if (!addressMobile || !/^\d{10}$/.test(addressMobile)) {
+        document.getElementById('addressMobileError').textContent = 'Please enter a valid 10-digit mobile number';
+        isValid = false;
+    }
+    if (!addressHouse) {
+        document.getElementById('addressHouseError').textContent = 'House/Apartment is required';
+        isValid = false;
+    }
+    if (!addressStreet) {
+        document.getElementById('addressStreetError').textContent = 'Street Address is required';
+        isValid = false;
+    }
+    if (!addressCity ||!/^[A-Za-z\s]+$/.test(addressCity)) {
+        document.getElementById('addressCityError').textContent = 'City is required';
+        isValid = false;
+    }
+    if (!addressDistrict) {
+        document.getElementById('addressDistrictError').textContent = 'District is required';
+        isValid = false;
+    }
+    if (!addressState || !/^[A-Za-z\s]+$/.test(addressState)) {
+        document.getElementById('addressStateError').textContent = 'State/Province is required';
+        isValid = false;
+    }
+    if (!addressPin || !/^\d{6}$/.test(addressPin)) {
+        document.getElementById('addressPinError').textContent = 'Please enter a valid 6-digit postal code';
+        isValid = false;
+    }
+
+    // If all fields are valid, submit the form using fetch
+    if (isValid) {
+        try {
+            const response = await fetch('/addAddress', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    id,
                     addressName,
                     addressMobile,
                     addressHouse,
@@ -702,36 +786,21 @@ document.getElementById('updateAddressBtn').addEventListener('click', function()
                     addressState,
                     addressPin
                 })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire(
-                        'Updated!',
-                        'Your address has been updated.',
-                        'success'
-                    ).then(() => {
-                        location.reload(); // Reload the page to reflect the changes
-                    });
-                } else {
-                    Swal.fire(
-                        'Error!',
-                        'There was an error updating the address. Please try again.',
-                        'error'
-                    );
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                Swal.fire(
-                    'Error!',
-                    'An error occurred. Please try again.',
-                    'error'
-                );
             });
+
+            if (response.ok) {
+                window.location.href = '/address'; // Redirect on success
+            } else {
+                console.error('Failed to add address');
+                alert('There was an issue adding your address. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('There was an error processing your request. Please try again later.');
         }
-    });
+    }
 });
+
 
 </script>
 

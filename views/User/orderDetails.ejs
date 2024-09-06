@@ -69,7 +69,7 @@
                                 <tbody>
                                   <%order.products.forEach(an =>{%>
                                     <tr>
-                                        <td><img src="/productimage/<%=an.productimages%>" alt="Product Image" class="img-thumbnail" style="width: 60px; height: 60px;"></td>
+                                        <td><img src="/productIMG/<%=an.productId.productimages[0]%>" alt="Product Image" class="img-thumbnail" style="width: 60px; height: 60px;"></td>
                                         <td><%=an.productId.name%></td>
                                         <td><%=an.quantity%></td>
                                         <td>&#8377;<%=an.price%></td>

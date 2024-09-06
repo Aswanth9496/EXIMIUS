@@ -171,7 +171,7 @@ const orderDetails = async (req,res)=>{
     try {
 
         const orderId = req.session.orderId;
-        const order = await Order.findOne({ orderId }).populate('products');
+        const order = await Order.findOne({ orderId }).populate('products.productId');
 
         for (let item of order.products) {
             const productId = item.productId._id;
@@ -190,6 +190,8 @@ const orderDetails = async (req,res)=>{
                 console.log(`Product with ID ${productId} not found.`);
             }
         }
+
+        
 
       res.render('orderDetails',{order,addressdata: order.address});  
     } catch (error) {

@@ -318,7 +318,7 @@
                                         <td>
                                             <% if (item.productId && item.productId.productimages && item.productId.productimages.length > 0) { %>
                                                 <img src="/productIMG/<%= item.productId.productimages[0] %>"
-                                                     alt="Product Image"  />
+                                                     alt="Product Image" />
                                             <% } else { %>
                                                 <img src="/path/to/placeholder-image.jpg" alt="No Image Available" class="img-thumbnail" />
                                             <% } %>
@@ -330,16 +330,28 @@
                                         <td><%= item.status || 'N/A' %></td>
                                         <td>
                                             <!-- Action Buttons -->
-                                            <button type="button" class="btn btn-primary btn-sm mt-2 update-status-btn"
-                                             data-order-id="<%= order.orderId %>"
-                                             data-product-id="<%= item._id %>">
-                                            Update </button>
-
-                                          </td>
-                                          
+                                            <% if (item.status !== 'Cancelled' && item.status !== 'Returned') { %>
+                                                <% if (item.status === 'Return Requested') { %>
+                                                    <button type="button" class="btn btn-success btn-sm mt-2"
+                                                        data-order-id="<%= order.orderId %>"
+                                                        data-product-id="<%= item._id %>"
+                                                        onclick="acceptReturnRequest('<%= item.productId._id %>', '<%= order._id %>')">
+                                                        Accept Request
+                                                    </button>
+                                                <% } else { %>
+                                                    <button type="button" class="btn btn-primary btn-sm mt-2 update-status-btn"
+                                                        data-order-id="<%= order.orderId %>"
+                                                        data-product-id="<%= item._id %>"
+                                                        onclick="statusget('<%= item.status %>')">
+                                                        Update
+                                                    </button>
+                                                <% } %>
+                                            <% } %>
+                                        </td>
                                     </tr>
                                 <% }) %>
                             </tbody>
+                            
                         </table>
                     </div>
             
@@ -387,6 +399,7 @@
                           <option value="Dispatch">Dispatch</option>
                           <option value="Shipped">Shipped</option>
                           <option value="Delivered">Delivered</option>
+                          <option value="Cancelled">Cancel</option>
                          
                       </select>
                   </div>
@@ -394,73 +407,151 @@
           </div>
           <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              <button type="button" class="btn btn-primary" id="updateStatusButton">Update Status</button>
+              <button type="button" class="btn btn-primary" id="updateStatusButton" >Update Status</button>
           </div>
       </div>
   </div>
+</div>      
+</div>
 </div>
 
 
-            
-        </div>
-    </div>
+<script>
 
-      
-    <script>
-      document.addEventListener('DOMContentLoaded', () => {
-    const statusModal = new bootstrap.Modal(document.getElementById('statusModal'));
-    const updateStatusButton = document.getElementById('updateStatusButton');
-
-    // Attach click event listener to all update buttons
-    document.querySelectorAll('.update-status-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const orderId = this.getAttribute('data-order-id');
-            const productId = this.getAttribute('data-product-id');
-            
-            // Store order and product IDs in data attributes of the modal
+    let crrstatus;
+    
+    function statusget(orderstatus) {
+        crrstatus = orderstatus;
+    }
+    
+    const statusArray = ['Pending', 'Dispatch', 'Shipped', 'Delivered', 'Cancelled'];
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        const statusModal = new bootstrap.Modal(document.getElementById('statusModal'));
+        const updateStatusButton = document.getElementById('updateStatusButton');
+    
+        // Attach click event listener to all update buttons
+        document.querySelectorAll('.update-status-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const orderId = this.getAttribute('data-order-id');
+                const productId = this.getAttribute('data-product-id');
+    
+                // Store order and product IDs in data attributes of the modal
+                const statusForm = document.getElementById('statusForm');
+                statusForm.setAttribute('data-order-id', orderId);
+                statusForm.setAttribute('data-product-id', productId);
+    
+                // Show the modal
+                statusModal.show();
+            });
+        });
+    
+        // Handle status update
+        updateStatusButton.addEventListener('click', async () => {
             const statusForm = document.getElementById('statusForm');
-            statusForm.setAttribute('data-order-id', orderId);
-            statusForm.setAttribute('data-product-id', productId);
-
-            // Show the modal
-            statusModal.show();
+            const orderId = statusForm.getAttribute('data-order-id');
+            const productId = statusForm.getAttribute('data-product-id');
+            const status = document.getElementById('orderStatus').value;
+    
+            const currentStatusIndex = statusArray.indexOf(crrstatus);
+            const selectedStatusIndex = statusArray.indexOf(status);
+    
+            console.log(status);
+            console.log(currentStatusIndex, selectedStatusIndex);
+    
+            // Validate that selected status index is greater than current status index
+            if (selectedStatusIndex <= currentStatusIndex) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Status Update',
+                    text: 'Please select a status that is greater than the current status.',
+                });
+                return;
+            }
+    
+            try {
+                const response = await fetch('/admin/updateOrderStatus', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ orderId, productId, status }),
+                });
+    
+                const result = await response.json();
+    
+                if (result.success) {
+                    // Optionally, you can refresh the page or update the UI to reflect the changes
+                    window.location.reload();
+                } else {
+                    Swal.fire('Error!', result.message || 'There was a problem updating the status.', 'error');
+                }
+            } catch (error) {
+                console.error('Error updating status:', error);
+                Swal.fire('Error!', 'There was a problem processing your request.', 'error');
+            } finally {
+                statusModal.hide();
+            }
         });
     });
+    
+    async function acceptReturnRequest(productId, orderId) {
+    // SweetAlert confirmation
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "Do you want to accept this return request?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, accept it!'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                // Sending a request to the backend to accept the return request
+                const response = await fetch('/admin/acceptReturnRequest', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ productId, orderId }),
+                });
 
-    // Handle status update
-    updateStatusButton.addEventListener('click', async () => {
-        const statusForm = document.getElementById('statusForm');
-        const orderId = statusForm.getAttribute('data-order-id');
-        const productId = statusForm.getAttribute('data-product-id');
-        const status = document.getElementById('orderStatus').value;
+                const data = await response.json();
 
-        try {
-            const response = await fetch('/admin/updateOrderStatus', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ orderId, productId, status }),
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                // Optionally, you can refresh the page or update the UI to reflect the changes
-                window.location.reload();
-            } else {
-                alert(result.message);
+                if (data.success) {
+                    // Success alert with SweetAlert
+                    Swal.fire(
+                        'Accepted!',
+                        'The return request has been accepted.',
+                        'success'
+                    ).then(() => {
+                        // Optionally refresh the page or update the UI
+                        window.location.reload();
+                    });
+                } else {
+                    // Error alert with SweetAlert if request fails
+                    Swal.fire(
+                        'Error!',
+                        data.message || 'There was a problem accepting the return request.',
+                        'error'
+                    );
+                }
+            } catch (error) {
+                console.error('Error accepting return request:', error);
+                // Show error alert using SweetAlert
+                Swal.fire(
+                    'Error!',
+                    'There was a problem processing your request.',
+                    'error'
+                );
             }
-        } catch (error) {
-            console.error('Error updating status:', error);
-        } finally {
-            statusModal.hide();
         }
-    }); 
-});
+    });
+}
 
-  </script>
-  
+    </script>
+      
   
       
 

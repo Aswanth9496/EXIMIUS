@@ -16,6 +16,7 @@ const userProfileController = require('../controllers/user/userProfileController
 const userAddressController= require('../controllers/user/userAddressControl');
 const checkoutController = require('../controllers/user/checkoutControl');
 const orderListController =require('../controllers/user/userOrderListControll');
+const walletControll = require('../controllers/user/walletControl');
 
 
 
@@ -69,13 +70,18 @@ router.get('/updateProfile',userProfileController.updateProfile);
 router.get('/address',userAuthentication,userAddressController.loadAddress);
 router.post('/addAddress',userAddressController.addAddress);
 router.delete('/deleteAddress/:id',userAddressController.deleteAddress);
-router.post('/updateAddress',userAddressController.updateAddress);
+router.post('/updateAddress/:id',userAddressController.updateAddress);
 
+//profile orders list
 router.get('/orderList',userAuthentication,orderListController.loadOrderList);
 router.get('/loadProfileOrderDetails/:id',orderListController.loadOrderDetails);
-router.get('/returnOrder/:id',orderListController.returnOrder);
-router.get('/cancelOrder/:id',orderListController.cancelOrder);
+router.post('/returnOrder', orderListController.returnOrder);
+router.post('/cancelOrder', orderListController.cancelOrder);
 
+
+
+// user wallet
+router.get('/wallet',walletControll.loadWallet);
 
 // check out
 router.get('/checkout',userAuthentication,checkoutController.loadCheckout);

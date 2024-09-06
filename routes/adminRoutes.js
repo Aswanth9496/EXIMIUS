@@ -13,9 +13,10 @@ const UserController  = require('../controllers/admin/UsersControllers');
 const CategoryController = require('../controllers/admin/CategoryManagement');
 const productController = require('../controllers/admin/productsController');
 const OrdersController = require('../controllers/admin/ordersController');
+const couponsController = require('../controllers/admin/couponsController');
 
 const upload = require('../config/multer');
-const { orderDetails } = require('../controllers/user/checkoutControl');
+
 
 //admin login
 app.get('/',adminController.loadAdminLoginPage);
@@ -39,6 +40,9 @@ app.post('/addCategory',isAuthenticated,CategoryController.addCategory);
 app.post('/toggle-category-status',isAuthenticated,CategoryController.toggleStatus);
 app.post('/update-category-name',isAuthenticated, CategoryController.updateCategoryName);
 
+// Coupons
+app.get('/Coupon',isAuthenticated,couponsController.lodeCoupons);
+
 // for user management
 app.get('/Users',isAuthenticated,UserController.LoadUserManagement);
 app.post('/Users',isAuthenticated,UserController.blockUser);
@@ -53,9 +57,15 @@ app.post('/update-product/:productId',isAuthenticated, upload.array('productimag
 app.post('/toggle-listing/:productId',isAuthenticated, productController.toggleListingStatus);
 
 //orders list 
-app.get('/Orders',OrdersController.loadOrders);
-app.get('/orderDetails/:id',OrdersController.orderDetails);
-app.post('/updateOrderStatus',OrdersController.updateOrderStatus);
+app.get('/Orders',isAuthenticated,OrdersController.loadOrders);
+app.get('/orderDetails/:id',isAuthenticated,OrdersController.orderDetails);
+app.post('/updateOrderStatus',isAuthenticated,OrdersController.updateOrderStatus);
+app.post('/acceptReturnRequest',isAuthenticated,OrdersController.acceptReturnRequest)
+
+
+
+
+
 
 
 

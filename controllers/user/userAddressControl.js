@@ -50,7 +50,9 @@ const addAddress = async (req, res) => {
 
 const updateAddress = async (req, res) => {
     try {
-        const { id, addressName, addressMobile, addressHouse, addressStreet, addressCity, addressDistrict, addressState, addressPin } = req.body;
+
+        const { id } = req.params;
+        const {  addressName, addressMobile, addressHouse, addressStreet, addressCity, addressDistrict, addressState, addressPin } = req.body;
 
         const updatedAddress = await Address.findByIdAndUpdate(
             id,
