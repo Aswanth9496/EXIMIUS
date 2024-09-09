@@ -14,6 +14,7 @@ const CategoryController = require('../controllers/admin/CategoryManagement');
 const productController = require('../controllers/admin/productsController');
 const OrdersController = require('../controllers/admin/ordersController');
 const couponsController = require('../controllers/admin/couponsController');
+const offersController = require('../controllers/admin/offersController');
 
 const upload = require('../config/multer');
 
@@ -42,6 +43,20 @@ app.post('/update-category-name',isAuthenticated, CategoryController.updateCateg
 
 // Coupons
 app.get('/Coupon',isAuthenticated,couponsController.lodeCoupons);
+app.post('/addCoupon',isAuthenticated,couponsController.addCoupon);
+app.delete('/deleteCoupon/:id',isAuthenticated,couponsController.deleteCoupon);
+app.put('/editCoupon/:couponId',isAuthenticated,couponsController.editCoupons);
+
+
+//offers
+app.get('/offers',isAuthenticated,offersController.loadOffers);
+app.post('/addCategoryOffer',isAuthenticated,offersController.addCategoriOffer);
+app.post('/addProductOffer',isAuthenticated,offersController.addProductOffer);
+app.delete('/deleteOffer/:id',isAuthenticated,offersController.deleteOffer);
+
+
+
+
 
 // for user management
 app.get('/Users',isAuthenticated,UserController.LoadUserManagement);

@@ -76,6 +76,11 @@ const updateCategoryName = async (req, res) => {
             return res.status(400).json({ type: 'error', msg: 'Category ID and new name are required' });
         }
 
+        const letterAndSpaceRegex = /^[A-Za-z\s]+$/;
+        if (!letterAndSpaceRegex.test(categoryName)) {
+            return res.status(400).json({ type: 'error', msg: 'Category name should contain only letters ' });
+        }
+
         const category = await Category.findById(categoryId);
 
         if (!category) {

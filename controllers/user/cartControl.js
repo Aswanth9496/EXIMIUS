@@ -44,12 +44,6 @@ const addToCart = async (req, res) => {
 
         let cart = await Cart.findOne({ user: userId });
 
-
-        
-
-        
-        
-
       
         // Check if the product is already in the cart
         const existingProductIndex = cart.products.findIndex(item => item.product.equals(productId));

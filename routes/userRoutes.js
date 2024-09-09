@@ -57,26 +57,26 @@ router.get('/product-details/:id',storeController.productDetails);
 // cart 
 router.get('/cart',userAuthentication, cartController.loadCart);
 router.post('/add_to_cart',userAuthentication,cartController.addToCart);
-router.delete('/removeFromCart/:id',cartController.deleteFromCart);
+router.delete('/removeFromCart/:id',userAuthentication,cartController.deleteFromCart);
 router.post('/updateCart',cartController.updateCart)
 
 
 // profile
 router.get('/profile',userAuthentication,userProfileController.loadProfile);
-router.post('/changePassword',userProfileController.updateUserPassword);
-router.get('/updateProfile',userProfileController.updateProfile);
+router.post('/changePassword',userAuthentication,userProfileController.updateUserPassword);
+router.get('/updateProfile',userAuthentication,userProfileController.updateProfile);
 
 //profile address
 router.get('/address',userAuthentication,userAddressController.loadAddress);
-router.post('/addAddress',userAddressController.addAddress);
-router.delete('/deleteAddress/:id',userAddressController.deleteAddress);
-router.post('/updateAddress/:id',userAddressController.updateAddress);
+router.post('/addAddress',userAuthentication,userAddressController.addAddress);
+router.delete('/deleteAddress/:id',userAuthentication,userAddressController.deleteAddress);
+router.post('/updateAddress/:id',userAuthentication,userAddressController.updateAddress);
 
 //profile orders list
 router.get('/orderList',userAuthentication,orderListController.loadOrderList);
-router.get('/loadProfileOrderDetails/:id',orderListController.loadOrderDetails);
-router.post('/returnOrder', orderListController.returnOrder);
-router.post('/cancelOrder', orderListController.cancelOrder);
+router.get('/loadProfileOrderDetails/:id',userAuthentication,orderListController.loadOrderDetails);
+router.post('/returnOrder',userAuthentication, orderListController.returnOrder);
+router.post('/cancelOrder',userAuthentication, orderListController.cancelOrder);
 
 
 
@@ -85,13 +85,13 @@ router.get('/wallet',walletControll.loadWallet);
 
 // check out
 router.get('/checkout',userAuthentication,checkoutController.loadCheckout);
-router.post('/CheckoutAddaddress',checkoutController.addAddress);
-router.delete('/CheckoutDeleteAddress/:id',checkoutController.deleteAddress);
+router.post('/CheckoutAddaddress',userAuthentication,checkoutController.addAddress);
+router.delete('/CheckoutDeleteAddress/:id',userAuthentication,checkoutController.deleteAddress);
 
 
 //order
-router.post('/placeOrder',checkoutController.placeOrder);
-router.get('/orderConfirmation',checkoutController.orderDetails);
-router.post('/placeorder/:id',checkoutController.placeOrder);
+router.post('/placeOrder',userAuthentication,checkoutController.placeOrder);
+router.get('/orderConfirmation',userAuthentication,checkoutController.orderDetails);
+router.post('/placeorder/:id',userAuthentication,checkoutController.placeOrder);
 
 module.exports = router;

@@ -1,0 +1,746 @@
+<%- include('../Layout/admin/headder.ejs') -%>
+
+
+
+<body>
+  <div class="container-scroller">
+    <!-- partial:partials/_navbar.html -->
+    <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
+      <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
+        <a class="navbar-brand brand-logo" href="index.html"><img src="images/logo.svg" alt="logo"/></a>
+        <a class="navbar-brand brand-logo-mini" href="index.html"><img src="images/logo-mini.svg" alt="logo"/></a>
+      </div>
+      <div class="navbar-menu-wrapper d-flex align-items-stretch">
+        <ul class="navbar-nav navbar-nav-right">
+          <li class="nav-item d-none d-lg-block full-screen-link">
+            <a class="nav-link">
+              <i class="mdi mdi-fullscreen" id="fullscreen-button"></i>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    <!-- partial -->
+    <div class="container-fluid page-body-wrapper">
+      <div class="row row-offcanvas row-offcanvas-right">
+        <!-- partial:partials/_sidebar.html -->
+        <nav class="sidebar sidebar-offcanvas" id="sidebar">
+          <ul class="nav">
+            <li class="nav-item">
+              <a class="nav-link" href="/admin/">
+                <span class="menu-title">Dashboard</span>
+                <i class="mdi mdi-home menu-icon"></i>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/admin/Product">
+                <span class="menu-title">Product</span>
+                <i class="mdi mdi-cube-outline menu-icon"></i>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/admin/Users">
+                <span class="menu-title">Users</span>
+                <i class="mdi mdi-account menu-icon"></i>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/admin/Orders">
+                <span class="menu-title">Orders</span>
+                <i class="mdi mdi-cart menu-icon"></i>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/admin/Coupon">
+                <span class="menu-title">Coupons</span>
+                <i class="mdi mdi-ticket-percent menu-icon"></i>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/admin/offers">
+                <span class="menu-title">Offers</span>
+                <i class="mdi mdi-image menu-icon"></i>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/admin/Category">
+                <span class="menu-title">Categories</span>
+                <i class="mdi mdi-shape-outline menu-icon"></i>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/admin/Brands">
+                <span class="menu-title">Brands</span>
+                <i class="mdi mdi-tag-multiple menu-icon"></i>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/admin/Logout">
+                <span class="menu-title">Logout</span>
+                <i class="mdi mdi-logout menu-icon"></i>
+              </a>
+            </li>
+          </ul>
+        </nav>
+        
+        <div class="content-wrapper">
+          <div class="page-header d-flex justify-content-between align-items-center">
+            <h3 class="page-title">Offers</h3>
+            <div>
+              <button type="button" class="btn btn-primary btn-icon-text add-category-offer-btn" data-toggle="modal" data-target="#addCategoryOfferModal">
+                <i class="mdi mdi-plus-circle-outline btn-icon-prepend"></i> Add Category Offer
+              </button>
+              <button type="button" class="btn btn-secondary btn-icon-text add-product-offer-btn" data-toggle="modal" data-target="#addProductOfferModal">
+                <i class="mdi mdi-plus-circle-outline btn-icon-prepend"></i> Add Product Offer
+              </button>
+            </div>
+          </div>
+        
+          <div class="row">
+            <% if (offers && offers.length > 0) { %>
+                <% offers.forEach((offer, index) => { %>
+                    <div class="col-md-4 mb-4">
+                        <div class="card shadow-sm" style="background: #f8f9fa; border: 1px solid #e9ecef;">
+                            <div class="card-body">
+                                <h5 class="card-title font-weight-bold">Offer Name: <%= offer.offerName %></h5>
+                                <p class="card-text">
+                                    <strong>Description:</strong> <%= offer.description %> <br>
+                                    <strong>Discount:</strong> <span class="badge badge-pill badge-primary"><%= offer.discount %>%</span> <br>
+                                    <strong>Type:</strong> <span class="badge badge-pill badge-secondary"><%= offer.type %></span> <br>
+                                    <strong>Status:</strong>
+                                    <% if (offer.status) { %>
+                                        <span class="badge badge-pill badge-success">Active</span>
+                                    <% } else { %>
+                                        <span class="badge badge-pill badge-danger">Inactive</span>
+                                    <% } %>
+                                </p>
+        
+                                <!-- Dropdown for product or category names -->
+                                <% if (offer.type === 'product') { %>
+                                    <p><strong>Applicable Products:</strong></p>
+                                    <div class="dropdown">
+                                        <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="productDropdown<%= index %>" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            View Products
+                                        </button>
+                                        <div class="dropdown-menu" aria-labelledby="productDropdown<%= index %>">
+                                            <% offer.products.forEach(product => { %>
+                                                <a class="dropdown-item" href="#"><%= product.productId.name %></a>
+                                            <% }) %>
+                                        </div>
+                                    </div>
+                                <% } else if (offer.type === 'category') { %>
+                                    <p><strong>Applicable Categories:</strong></p>
+                                    <div class="dropdown">
+                                        <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" id="categoryDropdown<%= index %>" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            View Categories
+                                        </button>
+                                        <div class="dropdown-menu" aria-labelledby="categoryDropdown<%= index %>">
+                                            <% offer.category.forEach(cat => { %>
+                                                <a class="dropdown-item" href="#"><%= cat.categoryId.name %></a>
+                                            <% }) %>
+                                        </div>
+                                    </div>
+                                <% } %>
+        
+                                <div class="d-flex justify-content-between mt-3">
+                                    <button class="btn btn-warning btn-sm font-weight-bold edit-offer-btn"
+                                        data-id="<%= offer._id %>"
+                                        data-name="<%= offer.offerName %>"
+                                        data-description="<%= offer.description %>"
+                                        data-discount="<%= offer.discount %>"
+                                        data-type="<%= offer.type %>"
+                                        data-status="<%= offer.status %>">
+                                        Edit
+                                    </button>
+                                    <button class="btn btn-danger btn-sm font-weight-bold delete-offer-btn" data-id="<%= offer._id %>">Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <div class="col-12 text-center">
+                    <p class="font-weight-bold text-muted">No offers found</p>
+                </div>
+            <% } %>
+        </div>
+        
+        <!-- Add Category Offer Modal -->
+<div class="modal fade" id="addCategoryOfferModal" tabindex="-1" role="dialog" aria-labelledby="addCategoryOfferModalTitle" aria-hidden="true">
+<div class="modal-dialog" role="document">
+  <div class="modal-content">
+    <form id="categoryOfferForm">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addCategoryOfferModalTitle">Add Category Offer</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="categoryOfferName">Offer Name</label>
+          <input type="text" class="form-control" id="categoryOfferName" name="name">
+          <small id="categoryOfferNameError" class="text-danger"></small>
+        </div>
+        <div class="form-group">
+          <label for="categoryOfferDescription">Description</label>
+          <textarea class="form-control" id="categoryOfferDescription" name="description"></textarea>
+          <small id="categoryOfferDescriptionError" class="text-danger"></small>
+        </div>
+        <div class="form-group">
+          <label for="categoryOfferDiscount">Discount (%)</label>
+          <input type="number" class="form-control" id="categoryOfferDiscount" name="discount" min="1" max="100">
+          <small id="categoryOfferDiscountError" class="text-danger"></small>
+        </div>
+        <div class="form-group">
+          <label>Categories</label><br>
+          <% categories.forEach(category => { %>
+            <input type="checkbox" name="categories" value="<%= category._id %>"> <%= category.name %><br>
+          <% }) %>
+          <small id="categoryOfferCategoriesError" class="text-danger"></small>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select class="form-control" id="categoryOfferStatus" name="status">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+          <small id="categoryOfferStatusError" class="text-danger"></small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary">Save Offer</button>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+
+<!-- Add Product Offer Modal -->
+<div class="modal fade" id="addProductOfferModal" tabindex="-1" role="dialog" aria-labelledby="addProductOfferModalTitle" aria-hidden="true">
+<div class="modal-dialog" role="document">
+  <div class="modal-content">
+    <form id="productOfferForm">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addProductOfferModalTitle">Add Product Offer</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- Offer Name -->
+        <div class="form-group">
+          <label for="productOfferName">Offer Name</label>
+          <input type="text" class="form-control" id="productOfferName" name="name">
+          <small id="productOfferNameError" class="text-danger"></small>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+          <label for="productOfferDescription">Description</label>
+          <textarea class="form-control" id="productOfferDescription" name="description"></textarea>
+          <small id="productOfferDescriptionError" class="text-danger"></small>
+        </div>
+
+        <!-- Discount -->
+        <div class="form-group">
+          <label for="productOfferDiscount">Discount (%)</label>
+          <input type="number" class="form-control" id="productOfferDiscount" name="discount" min="1" max="100">
+          <small id="productOfferDiscountError" class="text-danger"></small>
+        </div>
+
+        <!-- Products -->
+        <div class="form-group">
+          <label>Products</label><br>
+          <% products.forEach(product => { %>
+            <input type="checkbox" name="products" value="<%= product._id %>"> <%= product.name %><br>
+          <% }) %>
+          <small id="productOfferProductsError" class="text-danger"></small>
+        </div>
+
+        <!-- Status -->
+        <div class="form-group">
+          <label>Status</label>
+          <select class="form-control" id="productOfferStatus" name="status">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+          <small id="productOfferStatusError" class="text-danger"></small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary">Save Offer</button>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+
+<!-- Edit Category Offer Modal -->
+<div class="modal fade" id="editCategoryOfferModal" tabindex="-1" role="dialog" aria-labelledby="editCategoryOfferModalTitle" aria-hidden="true">
+<div class="modal-dialog" role="document">
+  <div class="modal-content">
+    <form id="editCategoryOfferForm">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editCategoryOfferModalTitle">Edit Category Offer</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editCategoryOfferId" name="id">
+        <input type="hidden" id="editCategoryOfferType" name="type" value="category">
+        <div class="form-group">
+          <label for="editCategoryOfferName">Offer Name</label>
+          <input type="text" class="form-control" id="editCategoryOfferName" name="name">
+          <small id="editCategoryOfferNameError" class="text-danger"></small>
+        </div>
+        <div class="form-group">
+          <label for="editCategoryOfferDescription">Description</label>
+          <textarea class="form-control" id="editCategoryOfferDescription" name="description"></textarea>
+          <small id="editCategoryOfferDescriptionError" class="text-danger"></small>
+        </div>
+        <div class="form-group">
+          <label for="editCategoryOfferDiscount">Discount (%)</label>
+          <input type="number" class="form-control" id="editCategoryOfferDiscount" name="discount" min="1" max="100">
+          <small id="editCategoryOfferDiscountError" class="text-danger"></small>
+        </div>
+        <div class="form-group">
+          <label>Categories</label>
+          <div id="editCategoryOfferCategories">
+            <!-- Checkboxes will be populated dynamically -->
+          </div>
+          <small id="editCategoryOfferCategoriesError" class="text-danger"></small>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select class="form-control" id="editCategoryOfferStatus" name="status">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+          <small id="editCategoryOfferStatusError" class="text-danger"></small>
+        </div>
+        <div id="additionalFields"></div> <!-- For additional fields -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+
+
+<!-- Edit Product Offer Modal -->
+<div class="modal fade" id="editProductOfferModal" tabindex="-1" role="dialog" aria-labelledby="editProductOfferModalTitle" aria-hidden="true">
+<div class="modal-dialog" role="document">
+  <div class="modal-content">
+    <form id="editProductOfferForm">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editProductOfferModalTitle">Edit Product Offer</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editProductOfferId" name="id">
+        <input type="hidden" id="editProductOfferType" name="type" value="product">
+        <div class="form-group">
+          <label for="editProductOfferName">Offer Name</label>
+          <input type="text" class="form-control" id="editProductOfferName" name="name">
+          <small id="editProductOfferNameError" class="text-danger"></small>
+        </div>
+        <div class="form-group">
+          <label for="editProductOfferDescription">Description</label>
+          <textarea class="form-control" id="editProductOfferDescription" name="description"></textarea>
+          <small id="editProductOfferDescriptionError" class="text-danger"></small>
+        </div>
+        <div class="form-group">
+          <label for="editProductOfferDiscount">Discount (%)</label>
+          <input type="number" class="form-control" id="editProductOfferDiscount" name="discount" min="1" max="100">
+          <small id="editProductOfferDiscountError" class="text-danger"></small>
+        </div>
+        <div class="form-group">
+          <label>Products</label>
+          <div id="editProductOfferProducts">
+            <!-- Checkboxes will be populated dynamically -->
+          </div>
+          <small id="editProductOfferProductsError" class="text-danger"></small>
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select class="form-control" id="editProductOfferStatus" name="status">
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+          <small id="editProductOfferStatusError" class="text-danger"></small>
+        </div>
+        <div id="additionalFields"></div> <!-- For additional fields -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+</div>
+
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+      const categoryOfferForm = document.getElementById('categoryOfferForm');
+      const productOfferForm = document.getElementById('productOfferForm');
+  
+      // Fetch and display offers
+      const fetchOffers = async () => {
+          try {
+              const response = await fetch('/admin/offers'); // Update the URL here
+              const data = await response.json();
+              console.log('Fetched offers:', data); // Log fetched data
+              if (response.ok) {
+                  updateOffersList(data.offers);
+              } else {
+                  console.error('Failed to fetch offers:', data.error);
+              }
+          } catch (error) {
+              console.error('Error fetching offers:', error);
+          }
+      };
+  
+      const updateOffersList = (offers) => {
+          console.log('Updating offers list with:', offers); // Log the offers being used to update the list
+          const offersContainer = document.getElementById('offersContainer');
+          offersContainer.innerHTML = ''; // Clear existing offers
+          offers.forEach(offer => {
+              // Create and append offer elements to the container
+              const offerElement = document.createElement('div');
+              offerElement.className = 'offer-item';
+              offerElement.innerHTML = `
+                  <h4>${offer.name}</h4>
+                  <p>${offer.description}</p>
+                  <p>Discount: ${offer.discount}%</p>
+                  <p>Status: ${offer.status}</p>
+              `;
+              offersContainer.appendChild(offerElement);
+          });
+      };
+  
+      // Add Category Offer Modal Button
+      document.querySelector('.add-category-offer-btn').addEventListener('click', () => {
+          categoryOfferForm.reset(); // Reset the form
+          categoryOfferForm.action = '/admin/addCategoryOffer'; // Set the form action for adding a category offer
+          document.getElementById('addCategoryOfferModalTitle').textContent = "Add Category Offer"; // Set modal title
+          $('#addCategoryOfferModal').modal('show'); // Open the modal
+      });
+  
+      // Add Product Offer Modal Button
+      document.querySelector('.add-product-offer-btn').addEventListener('click', () => {
+          productOfferForm.reset(); // Reset the form
+          productOfferForm.action = '/admin/addProductOffer'; // Set the form action for adding a product offer
+          document.getElementById('addProductOfferModalTitle').textContent = "Add Product Offer"; // Set modal title
+          $('#addProductOfferModal').modal('show'); // Open the modal
+      });
+  
+      // Reset the forms when the modals are hidden
+      $('#addCategoryOfferModal').on('hidden.bs.modal', () => categoryOfferForm.reset());
+      $('#addProductOfferModal').on('hidden.bs.modal', () => productOfferForm.reset());
+  
+      // Category Offer Form Submit
+      categoryOfferForm.addEventListener('submit', async function (e) {
+          e.preventDefault();
+          
+          // Clear previous errors
+          clearErrors('categoryOffer');
+  
+          // Validate inputs
+          const { hasError, data } = validateCategoryOfferForm();
+          if (hasError) return; // Stop submission if there are errors
+  
+          // Show confirmation dialog using SweetAlert
+          Swal.fire({
+              title: 'Are you sure?',
+              text: "You are about to add this category offer.",
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonText: 'Yes, add it!',
+              cancelButtonText: 'Cancel',
+              reverseButtons: true
+          }).then(async (result) => {
+              if (result.isConfirmed) {
+                  await submitOffer('/admin/addCategoryOffer', data, categoryOfferForm, '#addCategoryOfferModal');
+                  fetchOffers(); // Refresh the list of offers
+              }
+          });
+      });
+  
+      // Product Offer Form Submit
+      productOfferForm.addEventListener('submit', async function (e) {
+          e.preventDefault();
+          
+          // Clear previous error messages
+          clearErrors('productOffer');
+  
+          // Validate inputs
+          const { hasError, data } = validateProductOfferForm();
+          if (hasError) return; // Stop submission if there are errors
+  
+          // Show confirmation dialog using SweetAlert
+          Swal.fire({
+              title: 'Are you sure?',
+              text: "You are about to add this product offer.",
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonText: 'Yes, add it!',
+              cancelButtonText: 'Cancel',
+              reverseButtons: true
+          }).then(async (result) => {
+              if (result.isConfirmed) {
+                  await submitOffer('/admin/addProductOffer', data, productOfferForm, '#addProductOfferModal');
+                  fetchOffers(); // Refresh the list of offers
+              }
+          });
+      });
+  
+      function validateCategoryOfferForm() {
+          let hasError = false;
+          const errors = {};
+  
+          const name = document.getElementById('categoryOfferName').value.trim();
+          const description = document.getElementById('categoryOfferDescription').value.trim();
+          const discount = document.getElementById('categoryOfferDiscount').value.trim();
+          const categories = [...document.querySelectorAll('input[name="categories"]:checked')].map(el => el.value);
+          const status = document.getElementById('categoryOfferStatus').value;
+  
+          if (!name) {
+              errors.name = 'Offer name is required.';
+              hasError = true;
+          }
+          if (!description) {
+              errors.description = 'Description is required.';
+              hasError = true;
+          }
+          if (isNaN(discount) || discount <= 0 || discount > 100) {
+              errors.discount = 'Discount must be between 1 and 100.';
+              hasError = true;
+          }
+          if (categories.length === 0) {
+              errors.categories = 'At least one category must be selected.';
+              hasError = true;
+          }
+          if (!status) {
+              errors.status = 'Status is required.';
+              hasError = true;
+          }
+  
+          if (hasError) {
+              displayErrors('categoryOffer', errors);
+          }
+  
+          return { hasError, data: { name, description, discount, categories, status } };
+      }
+  
+      function validateProductOfferForm() {
+          let hasError = false;
+          const errors = {};
+  
+          const name = document.getElementById('productOfferName').value.trim();
+          const description = document.getElementById('productOfferDescription').value.trim();
+          const discount = document.getElementById('productOfferDiscount').value.trim();
+          const products = [...document.querySelectorAll('input[name="products"]:checked')].map(el => el.value);
+          const status = document.getElementById('productOfferStatus').value;
+  
+          if (!name) {
+              errors.name = 'Offer name is required.';
+              hasError = true;
+          }
+          if (!description) {
+              errors.description = 'Description is required.';
+              hasError = true;
+          }
+          if (isNaN(discount) || discount <= 0 || discount > 100) {
+              errors.discount = 'Discount must be between 1 and 100.';
+              hasError = true;
+          }
+          if (products.length === 0) {
+              errors.products = 'At least one product must be selected.';
+              hasError = true;
+          }
+          if (!status) {
+              errors.status = 'Status is required.';
+              hasError = true;
+          }
+  
+          if (hasError) {
+              displayErrors('productOffer', errors);
+          }
+  
+          return { hasError, data: { name, description, discount, products, status } };
+      }
+  
+      function displayErrors(formName, errors) {
+          for (const [key, message] of Object.entries(errors)) {
+              const errorElement = document.getElementById(`${formName}${capitalizeFirstLetter(key)}Error`);
+              if (errorElement) {
+                  errorElement.textContent = message;
+              }
+          }
+      }
+  
+      function clearErrors(formName) {
+          const errorElements = document.querySelectorAll(`#${formName} .text-danger`);
+          errorElements.forEach(el => el.textContent = '');
+      }
+  
+      function capitalizeFirstLetter(string) {
+          return string.charAt(0).toUpperCase() + string.slice(1);
+      }
+  
+      async function submitOffer(url, data, form, modalSelector) {
+          try {
+              const response = await fetch(url, {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify(data)
+              });
+  
+              const result = await response.json();
+              console.log('Submission result:', result); // Log the result of the submission
+              if (response.ok) {
+                  Swal.fire('Success!', result.message, 'success').then(() => {
+                      $(modalSelector).modal('hide');
+                      form.reset();
+                      fetchOffers(); // Refresh the list of offers
+                  });
+              } else {
+                  Swal.fire('Error!', result.message || 'Failed to submit offer.', 'error');
+              }
+          } catch (error) {
+              console.error('Submission error:', error);
+              Swal.fire('Error!', 'An error occurred while submitting the offer.', 'error');
+          }
+      }
+  
+      // Fetch and display offers initially
+      fetchOffers();
+  });
+  </script>
+  
+
+
+
+<script>
+ 
+
+    // Delete Offer
+    document.querySelectorAll('.delete-offer-btn').forEach(button => {
+      button.addEventListener('click', async function() {
+        const offerId = this.getAttribute('data-id');
+
+        const confirmed = await Swal.fire({
+          title: 'Are you sure?',
+          text: 'This action cannot be undone.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Yes, delete it!'
+        });
+
+        if (confirmed.isConfirmed) {
+          await handleDeleteOffer(offerId);
+        }
+      });
+    });
+  
+
+  async function submitOffer(url, data, form, modalId) {
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      if (response.ok) {
+        Swal.fire('Success!', 'Offer has been added.', 'success').then(() => {
+          $(modalId).modal('hide');
+          form.reset();
+        });
+      } else {
+        throw new Error('Submission failed.');
+      }
+    } catch (error) {
+      Swal.fire('Error!', 'There was an error submitting the offer.', 'error');
+    }
+  }
+
+  function clearErrors(formType) {
+    // Logic to clear errors from the form based on `formType`
+  }
+
+  function validateCategoryOfferForm() {
+    let hasError = false;
+    let data = {};
+    // Add validation logic and populate `data`
+    // Set `hasError` to true if validation fails
+    return { hasError, data };
+  }
+
+  function validateProductOfferForm() {
+    let hasError = false;
+    let data = {};
+    // Add validation logic and populate `data`
+    // Set `hasError` to true if validation fails
+    return { hasError, data };
+  }
+
+  async function handleDeleteOffer(offerId) {
+    try {
+      const response = await fetch(`/admin/deleteOffer/${offerId}`, { method: 'DELETE' });
+      if (response.ok) {
+        Swal.fire('Deleted!', 'The offer has been deleted.', 'success').then(() => {
+          location.reload(); // Refresh the page or update the UI to reflect the deletion
+        });
+      } else {
+        throw new Error('Deletion failed.');
+      }
+    } catch (error) {
+      Swal.fire('Error!', 'There was an error deleting the offer.', 'error');
+    }
+  }
+</script>
+
+        <!-- Bootstrap CSS -->
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+        
+        <!-- jQuery and Bootstrap JS -->
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- SweetAlert2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
+
+
+
+
+        
+  </body>
+
+
+ <%- include('../Layout/admin/footer.ejs') -%>
+
+  
+  
+  
+ 
