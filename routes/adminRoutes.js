@@ -53,6 +53,7 @@ app.get('/offers',isAuthenticated,offersController.loadOffers);
 app.post('/addCategoryOffer',isAuthenticated,offersController.addCategoriOffer);
 app.post('/addProductOffer',isAuthenticated,offersController.addProductOffer);
 app.delete('/deleteOffer/:id',isAuthenticated,offersController.deleteOffer);
+app.put('/updateOffer/:id',isAuthenticated,offersController.editoffer);
 
 
 

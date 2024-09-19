@@ -143,15 +143,19 @@
                                 <% } %>
         
                                 <div class="d-flex justify-content-between mt-3">
-                                    <button class="btn btn-warning btn-sm font-weight-bold edit-offer-btn"
-                                        data-id="<%= offer._id %>"
-                                        data-name="<%= offer.offerName %>"
-                                        data-description="<%= offer.description %>"
-                                        data-discount="<%= offer.discount %>"
-                                        data-type="<%= offer.type %>"
-                                        data-status="<%= offer.status %>">
-                                        Edit
-                                    </button>
+                                  <button class="btn btn-warning btn-sm font-weight-bold edit-offer-btn"
+                                  data-id="<%= offer._id %>"
+                                  data-name="<%= offer.offerName %>"
+                                  data-description="<%= offer.description %>"
+                                  data-discount="<%= offer.discount %>"
+                                  data-type="<%= offer.type %>"
+                                  data-status="<%= offer.status %>"
+                                  data-products='<%= JSON.stringify(offer.products || []) %>'
+                                  data-categories='<%= JSON.stringify(offer.category || []) %>'>
+                                  Edit
+                              </button>
+                              
+                              
                                     <button class="btn btn-danger btn-sm font-weight-bold delete-offer-btn" data-id="<%= offer._id %>">Delete</button>
                                 </div>
                             </div>
@@ -278,116 +282,173 @@
 </div>
 </div>
 
-<!-- Edit Category Offer Modal -->
-<div class="modal fade" id="editCategoryOfferModal" tabindex="-1" role="dialog" aria-labelledby="editCategoryOfferModalTitle" aria-hidden="true">
-<div class="modal-dialog" role="document">
-  <div class="modal-content">
-    <form id="editCategoryOfferForm">
-      <div class="modal-header">
-        <h5 class="modal-title" id="editCategoryOfferModalTitle">Edit Category Offer</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <input type="hidden" id="editCategoryOfferId" name="id">
-        <input type="hidden" id="editCategoryOfferType" name="type" value="category">
-        <div class="form-group">
-          <label for="editCategoryOfferName">Offer Name</label>
-          <input type="text" class="form-control" id="editCategoryOfferName" name="name">
-          <small id="editCategoryOfferNameError" class="text-danger"></small>
+<!-- Edit Offer Modal -->
+<div class="modal fade" id="editOfferModal" tabindex="-1" role="dialog" aria-labelledby="editOfferModalTitle" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <form id="editOfferForm">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editOfferModalTitle">Edit Offer</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
         </div>
-        <div class="form-group">
-          <label for="editCategoryOfferDescription">Description</label>
-          <textarea class="form-control" id="editCategoryOfferDescription" name="description"></textarea>
-          <small id="editCategoryOfferDescriptionError" class="text-danger"></small>
-        </div>
-        <div class="form-group">
-          <label for="editCategoryOfferDiscount">Discount (%)</label>
-          <input type="number" class="form-control" id="editCategoryOfferDiscount" name="discount" min="1" max="100">
-          <small id="editCategoryOfferDiscountError" class="text-danger"></small>
-        </div>
-        <div class="form-group">
-          <label>Categories</label>
-          <div id="editCategoryOfferCategories">
-            <!-- Checkboxes will be populated dynamically -->
+        <div class="modal-body">
+          <!-- Hidden field to store offer ID -->
+          <input type="hidden" id="editOfferId" name="id">
+          
+          <!-- Offer Name -->
+          <div class="form-group">
+            <label for="editOfferName">Offer Name</label>
+            <input type="text" class="form-control" id="editOfferName" name="name" >
+            <small class="text-danger" id="editOfferNameError"></small>
           </div>
-          <small id="editCategoryOfferCategoriesError" class="text-danger"></small>
+
+          <!-- Description -->
+          <div class="form-group">
+            <label for="editOfferDescription">Description</label>
+            <textarea class="form-control" id="editOfferDescription" name="description" ></textarea>
+            <small class="text-danger" id="editOfferDescriptionError"></small>
+          </div>
+
+          <!-- Discount -->
+          <div class="form-group">
+            <label for="editOfferDiscount">Discount (%)</label>
+            <input type="number" class="form-control" id="editOfferDiscount" name="discount" min="1" max="100" >
+            <small class="text-danger" id="editOfferDiscountError"></small>
+          </div>
+
+          <!-- Status -->
+          <div class="form-group">
+            <label for="editOfferStatus">Status</label>
+            <select class="form-control" id="editOfferStatus" name="status" >
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+            <small class="text-danger" id="editOfferStatusError"></small>
+          </div>
+
+          <!-- Applicable Products or Categories -->
+          <div id="editOfferDetails"></div> <!-- Products or Categories dropdown will be added dynamically -->
         </div>
-        <div class="form-group">
-          <label>Status</label>
-          <select class="form-control" id="editCategoryOfferStatus" name="status">
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-          <small id="editCategoryOfferStatusError" class="text-danger"></small>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
         </div>
-        <div id="additionalFields"></div> <!-- For additional fields -->
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="submit" class="btn btn-primary">Save Changes</button>
-      </div>
-    </form>
+      </form>
+    </div>
   </div>
-</div>
 </div>
 
 
-<!-- Edit Product Offer Modal -->
-<div class="modal fade" id="editProductOfferModal" tabindex="-1" role="dialog" aria-labelledby="editProductOfferModalTitle" aria-hidden="true">
-<div class="modal-dialog" role="document">
-  <div class="modal-content">
-    <form id="editProductOfferForm">
-      <div class="modal-header">
-        <h5 class="modal-title" id="editProductOfferModalTitle">Edit Product Offer</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <input type="hidden" id="editProductOfferId" name="id">
-        <input type="hidden" id="editProductOfferType" name="type" value="product">
-        <div class="form-group">
-          <label for="editProductOfferName">Offer Name</label>
-          <input type="text" class="form-control" id="editProductOfferName" name="name">
-          <small id="editProductOfferNameError" class="text-danger"></small>
-        </div>
-        <div class="form-group">
-          <label for="editProductOfferDescription">Description</label>
-          <textarea class="form-control" id="editProductOfferDescription" name="description"></textarea>
-          <small id="editProductOfferDescriptionError" class="text-danger"></small>
-        </div>
-        <div class="form-group">
-          <label for="editProductOfferDiscount">Discount (%)</label>
-          <input type="number" class="form-control" id="editProductOfferDiscount" name="discount" min="1" max="100">
-          <small id="editProductOfferDiscountError" class="text-danger"></small>
-        </div>
-        <div class="form-group">
-          <label>Products</label>
-          <div id="editProductOfferProducts">
-            <!-- Checkboxes will be populated dynamically -->
-          </div>
-          <small id="editProductOfferProductsError" class="text-danger"></small>
-        </div>
-        <div class="form-group">
-          <label>Status</label>
-          <select class="form-control" id="editProductOfferStatus" name="status">
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-          <small id="editProductOfferStatusError" class="text-danger"></small>
-        </div>
-        <div id="additionalFields"></div> <!-- For additional fields -->
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="submit" class="btn btn-primary">Save Changes</button>
-      </div>
-    </form>
-  </div>
-</div>
-</div>
+
+<script>
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Get all the edit buttons
+    const editButtons = document.querySelectorAll('.edit-offer-btn');
+
+    // Loop through all edit buttons and attach click event listeners
+    editButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            const offerId = this.dataset.id;
+            const offerName = this.dataset.name;
+            const offerDescription = this.dataset.description;
+            const offerDiscount = this.dataset.discount;
+            const offerStatus = this.dataset.status;
+            const offerType = this.dataset.type;
+            const offerProducts = JSON.parse(this.dataset.products || '[]');
+            const offerCategories = JSON.parse(this.dataset.categories || '[]');
+
+            // Set the form fields with the existing offer data
+            document.getElementById('editOfferId').value = offerId;
+            document.getElementById('editOfferName').value = offerName;
+            document.getElementById('editOfferDescription').value = offerDescription;
+            document.getElementById('editOfferDiscount').value = offerDiscount;
+            document.getElementById('editOfferStatus').value = offerStatus;
+
+            const offerDetailsDiv = document.getElementById('editOfferDetails');
+            offerDetailsDiv.innerHTML = '';
+
+            if (offerType === 'product') {
+                let productsHtml = '<label>Applicable Products</label><br>';
+                offerProducts.forEach(product => {
+                    productsHtml += `<input type="checkbox" name="products" value="${product.productId._id}" checked> ${product.productId.name}<br>`;
+                });
+                offerDetailsDiv.innerHTML = productsHtml;
+            } else if (offerType === 'category') {
+                let categoriesHtml = '<label>Applicable Categories</label><br>';
+                offerCategories.forEach(category => {
+                    categoriesHtml += `<input type="checkbox" name="categories" value="${category.categoryId._id}" checked> ${category.categoryId.name}<br>`;
+                });
+                offerDetailsDiv.innerHTML = categoriesHtml;
+            }
+
+            // Show the modal
+            $('#editOfferModal').modal('show');
+        });
+    });
+
+    // Handle form submission with fetch API
+    document.getElementById('editOfferForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const offerId = document.getElementById('editOfferId').value;
+        const offerName = document.getElementById('editOfferName').value;
+        const offerDescription = document.getElementById('editOfferDescription').value;
+        const offerDiscount = document.getElementById('editOfferDiscount').value;
+        const offerStatus = document.getElementById('editOfferStatus').value;
+        const selectedProducts = Array.from(document.querySelectorAll('input[name="products"]:checked')).map(el => el.value);
+        const selectedCategories = Array.from(document.querySelectorAll('input[name="categories"]:checked')).map(el => el.value);
+
+        const offerData = {
+            id: offerId,
+            name: offerName,
+            description: offerDescription,
+            discount: offerDiscount,
+            status: offerStatus,
+            products: selectedProducts,
+            categories: selectedCategories
+        };
+
+        try {
+            const response = await fetch(`/admin/updateOffer/${offerId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(offerData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+              Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: 'Offer updated successfully',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    location.reload(); // Reload the page to show updated offer
+                });
+                 } else {
+                  Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: result.message,
+                    confirmButtonText: 'OK'
+                });
+                          }
+        } catch (error) {
+            console.error('Error updating offer:', error);
+            alert('An error occurred while updating the offer.');
+        }
+    });
+});
+
+
+</script>
 
 
 
@@ -398,6 +459,7 @@
   
       // Fetch and display offers
       const fetchOffers = async () => {
+        
           try {
               const response = await fetch('/admin/offers'); // Update the URL here
               const data = await response.json();
@@ -616,6 +678,7 @@
                   Swal.fire('Success!', result.message, 'success').then(() => {
                       $(modalSelector).modal('hide');
                       form.reset();
+                      location.reload();
                       fetchOffers(); // Refresh the list of offers
                   });
               } else {

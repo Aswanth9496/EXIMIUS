@@ -17,6 +17,8 @@ const userAddressController= require('../controllers/user/userAddressControl');
 const checkoutController = require('../controllers/user/checkoutControl');
 const orderListController =require('../controllers/user/userOrderListControll');
 const walletControll = require('../controllers/user/walletControl');
+const WishlistControll = require ('../controllers/user/WishlistControl');
+const isAuthenticated = require('../Middlewares/Authention');
 
 
 
@@ -58,7 +60,13 @@ router.get('/product-details/:id',storeController.productDetails);
 router.get('/cart',userAuthentication, cartController.loadCart);
 router.post('/add_to_cart',userAuthentication,cartController.addToCart);
 router.delete('/removeFromCart/:id',userAuthentication,cartController.deleteFromCart);
-router.post('/updateCart',cartController.updateCart)
+router.post('/updateCart',cartController.updateCart);
+
+
+//Wishlist
+router.get('/wishlist',userAuthentication,WishlistControll.loadWishlist);
+router.get('/addToWishlist',userAuthentication,WishlistControll.addToWishlist);
+router.delete('/removeFromWishlist/:productId',userAuthentication,WishlistControll.removeFromWishlist);
 
 
 // profile
@@ -87,11 +95,14 @@ router.get('/wallet',walletControll.loadWallet);
 router.get('/checkout',userAuthentication,checkoutController.loadCheckout);
 router.post('/CheckoutAddaddress',userAuthentication,checkoutController.addAddress);
 router.delete('/CheckoutDeleteAddress/:id',userAuthentication,checkoutController.deleteAddress);
+router.post('/applyCoupon',userAuthentication,checkoutController.applyCoupon);
 
 
 //order
 router.post('/placeOrder',userAuthentication,checkoutController.placeOrder);
 router.get('/orderConfirmation',userAuthentication,checkoutController.orderDetails);
 router.post('/placeorder/:id',userAuthentication,checkoutController.placeOrder);
+
+router.get('/razorpayCheckout',userAuthentication,checkoutController.razorpayCheckout);
 
 module.exports = router;

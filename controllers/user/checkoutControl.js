@@ -4,6 +4,12 @@ const Cart = require('../../models/cartModel');
 const User = require('../../models/userModel');
 const Order = require("../../models/ordersModel");
 const Product =require("../../models/productsModel");
+const Coupon  = require('../../models/couponModel');
+const Razorpay = require('razorpay');
+
+
+
+
 
 
 // load checkout page
@@ -14,19 +20,22 @@ const loadCheckout = async (req,res)=>{
         
         const addresses  = await Address.find({ user_id: userId });
         const cart = await Cart.findOne({ user: userId }).populate('products.product');
+        const coupons = await Coupon.find();
 
         let totalPrice = 0;
 
         if (cart) {
-            // Calculate the total price dynamically
+            // Calculate the total price dynamically using offer prices if available
             cart.products.forEach(item => {
-              totalPrice += item.product.price * item.quantity;
+                const price = item.product.offerPrice || item.product.price;
+                totalPrice += price * item.quantity;
             });
-          }
+        }
+
 
        
 
-       res.render('checkout',{ cart, totalPrice,addresses : addresses || []});
+       res.render('checkout',{ cart, totalPrice,addresses : addresses || [],coupons: coupons || []});
 
 
     } catch (error) {
@@ -71,8 +80,6 @@ const addAddress = async (req, res) => {
 
 
 
-
-
 // delect address
 const deleteAddress = async (req, res) => {
     try {
@@ -86,9 +93,13 @@ const deleteAddress = async (req, res) => {
 };
 
 
+
+
 const placeOrder = async (req, res) => {
-    const { addressId, paymentMethod } = req.body;
+    const { addressId, paymentMethod, couponCode } = req.body;
     const userId = req.session.user.id;
+    console.log(req.body);
+    
 
     try {
         // Fetch the user's address
@@ -108,7 +119,8 @@ const placeOrder = async (req, res) => {
         const products = [];
 
         for (const item of cart.products) {
-            const totalPrice = item.product.price * item.quantity;
+            const price = item.product.offerPrice || item.product.price;
+            const totalPrice = price * item.quantity;
             totalAmount += totalPrice;
 
             // Check if the product has enough stock
@@ -116,12 +128,22 @@ const placeOrder = async (req, res) => {
                 return res.status(400).json({ success: false, message: `Not enough stock for ${item.product.name}.` });
             }
 
-            
+            if (couponCode) {
+
+                const coupon = await Coupon.findOne({ code: couponCode, status: true });
+                let discount = (totalAmount * coupon.discount) / 100;
+
+                if (coupon.maxDiscountAmount > 0) {
+                    discount = Math.min(discount, coupon.maxDiscountAmount); 
+                }
+
+                totalAmount -=discount
+            }
 
             products.push({
                 productId: item.product._id,
                 quantity: item.quantity,
-                price: item.product.price,
+                price: price,
                 totalPrice,
                 status: 'Pending'
             });
@@ -145,8 +167,6 @@ const placeOrder = async (req, res) => {
         // Save the order to the database
         await newOrder.save();
 
-         
-
         // Clear the user's cart
         await Cart.updateOne(
             { user: userId },
@@ -156,13 +176,96 @@ const placeOrder = async (req, res) => {
         // Save the orderId in the session
         req.session.orderId = newOrder.orderId;
 
-       
         res.json({ success: true, orderId: newOrder.orderId });
     } catch (error) {
         console.error('Error placing order:', error);
         res.status(500).json({ success: false, message: 'Internal server error.' });
     }
 };
+
+
+
+
+
+const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,    
+    key_secret: process.env.RAZORPAY_KEY_SECRET 
+});
+
+
+
+
+const calculateEffectivePrice = (product) => {
+    // Base price is the original price
+    let effectivePrice = product.price;
+
+    // If there are offers, calculate the best offer (maximum discount)
+    if (product.offers && product.offers.length > 0) {
+        const bestDiscount = product.offers.reduce((maxDiscount, offer) => {
+            return Math.max(maxDiscount, offer.discount);
+        }, 0);
+
+        // Apply the best discount
+        effectivePrice = product.price - (product.price * (bestDiscount / 100));
+    }
+
+    return effectivePrice;
+};
+
+
+
+const razorpayCheckout = async (req, res) => {
+    try {
+        const { addressId } = req.query;
+        const userId = req.session.user.id;
+
+        // Fetch user's cart and calculate total amount
+        const cart = await Cart.findOne({ user: userId }).populate('products.product', 'price offers');
+        if (!cart || cart.products.length === 0) {
+            return res.status(400).json({ success: false, message: 'Cart is empty.' });
+        }
+
+        // Calculate total amount considering offers
+        let totalAmount = cart.products.reduce((sum, item) => {
+            const product = item.product;
+
+            // Calculate the effective price with offers
+            const effectivePrice = calculateEffectivePrice(product);
+
+            return sum + (effectivePrice * item.quantity);
+        }, 0);
+
+        // Create Razorpay order
+        const options = {
+            amount: totalAmount * 100, // Razorpay requires amount in paise
+            currency: 'INR',
+            receipt: `receipt_${Date.now()}`,
+            payment_capture: 1
+        };
+
+        const razorpayOrder = await razorpay.orders.create(options);
+        if (!razorpayOrder) {
+            console.error("Failed to create Razorpay order");
+            return res.status(500).json({ success: false, message: 'Failed to create Razorpay order' });
+        }
+
+        res.json({
+            razorpayOrderId: razorpayOrder.id,
+            totalAmount: totalAmount,
+            keyId: process.env.RAZORPAY_KEY_ID,
+            addressId: addressId
+        });
+
+    } catch (error) {
+        console.error('Error during Razorpay checkout:', error); // Log error for further investigation
+        res.status(500).json({ success: false, message: 'Server Error' });
+    }
+};
+
+
+
+
+
 
 
 
@@ -200,7 +303,69 @@ const orderDetails = async (req,res)=>{
     }
 
 };
-    
+
+
+
+
+const applyCoupon = async (req, res) => {
+    try {
+        const { couponCode, totalAmount } = req.body;
+
+
+        if (!couponCode || totalAmount == null) {
+            return res.status(400).json({
+                success: false,
+                message: 'Coupon code and total amount are required.',
+            });
+        }
+
+        // Fetch the coupon from the database
+        const coupon = await Coupon.findOne({ code: couponCode });
+
+        if (!coupon) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid coupon code. Please try again.',
+            });
+        }
+
+        const currentDate = new Date();
+        const expirationDate = new Date(coupon.expirationDate);
+
+        if (expirationDate < currentDate) {
+            return res.status(400).json({
+                success: false,
+                message: 'This coupon has expired.',
+            });
+        }
+
+        if (totalAmount < coupon.minPurchaseAmount) {
+            return res.status(400).json({
+                success: false,
+                message: `Minimum purchase amount for this coupon is ${coupon.minPurchaseAmount}.`,
+            });
+        }
+
+        // Calculate discount
+        let discount = (totalAmount * coupon.discount) / 100;
+        if (coupon.maxDiscountAmount > 0) {
+            discount = Math.min(discount, coupon.maxDiscountAmount);
+        }
+
+        return res.status(200).json({
+            success: true,
+            discount,
+            message: 'Coupon applied successfully!',
+        });
+
+    } catch (error) {
+        console.error('Error applying coupon:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Internal server error.',
+        });
+    }
+};
 
 
 
@@ -208,8 +373,9 @@ const orderDetails = async (req,res)=>{
 module.exports ={
     loadCheckout,
     addAddress,
-   
     deleteAddress,
     placeOrder,
-    orderDetails
+    orderDetails,
+    razorpayCheckout,
+    applyCoupon
 };

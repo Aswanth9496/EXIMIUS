@@ -12,9 +12,9 @@ const loadCart = async (req, res) => {
             return res.render('cart', { emptyCart: true });
         }
 
-        // Calculate total price
         const totalPrice = cart.products.reduce((total, item) => {
-            return total + (item.product.price * item.quantity);
+            const price = item.product.offerPrice || item.product.price;
+            return total + (price * item.quantity);
         }, 0);
 
         res.render('cart', { totalPrice, cart, emptyCart: false });

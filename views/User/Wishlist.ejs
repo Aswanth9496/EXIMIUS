@@ -1,0 +1,302 @@
+<%- include('../Layout/user/hedder.ejs') -%>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+<style>
+    /* Wishlist Section Styles */
+.wishlist .wishlist__table {
+    margin-top: 20px;
+}
+
+.wishlist .table {
+    background-color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.wishlist .table th, .wishlist .table td {
+    padding: 12px;
+    text-align: center;
+}
+
+.wishlist .product__wishlist__item__pic img {
+    max-width: 100px;
+    border-radius: 8px;
+}
+
+.wishlist .product__wishlist__item__text h6 {
+    font-size: 16px;
+    margin-top: 8px;
+}
+
+.wishlist .wishlist__price h5 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.wishlist .wishlist__actions .btn {
+    margin: 0 5px;
+}
+
+.empty-wishlist {
+    padding: 40px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.empty-wishlist h2 {
+    font-size: 24px;
+    color: #343a40;
+}
+
+.empty-wishlist p {
+    font-size: 16px;
+    color: #6c757d;
+}
+
+.primary-btn {
+    background-color: #007bff;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 4px;
+    text-decoration: none;
+}
+
+.primary-btn:hover {
+    background-color: #0056b3;
+}
+
+</style>
+
+
+<body>
+    <!-- Breadcrumb Section Begin -->
+    <section class="breadcrumb-option">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="breadcrumb__text">
+                        <h4>Wishlist</h4>
+                        <div class="breadcrumb__links">
+                            <a href="/">Home</a>
+                            <a href="/store">Shop</a>
+                            <span>Wishlist</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Breadcrumb Section End -->
+
+    <!-- Wishlist Section Begin -->
+    <section class="wishlist spad">
+        <div class="container">
+            <% if (wishlist && wishlist.products.length === 0) { %>
+                <div class="empty-wishlist text-center">
+                    <h2 class="mb-3">Your wishlist is empty</h2>
+                    <p class="mb-4">It looks like you haven't added anything to your wishlist yet. Start shopping to add items!</p>
+                    <a href="/store" class="primary-btn">Continue Shopping</a>
+                </div>
+            <% } else { %>
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="wishlist__table">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Price</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% wishlist.products.forEach(item => { %>
+                                    <tr data-product-id="<%= item.product._id %>">
+                                        <td class="product__wishlist__item">
+                                            <div class="product__wishlist__item__pic">
+                                                <img src="/productIMG/<%= item.product.productimages[0] %>" alt="<%= item.product.name %>" class="img-fluid">
+                                            </div>
+                                            <div class="product__wishlist__item__text">
+                                                <h6><%= item.product.name %></h6>
+                                                <% if (item.product.offerPrice) { %>
+                                                    <h5>
+                                                        <del>$<%= item.product.price.toFixed(2) %></del> 
+                                                        $<%= item.product.offerPrice.toFixed(2) %>
+                                                    </h5>
+                                                <% } else { %>
+                                                    <h5>$<%= item.product.price.toFixed(2) %></h5>
+                                                <% } %>
+                                            </div>
+                                        </td>
+                                        <td class="wishlist__price">
+                                            <% if (item.product.offerPrice) { %>
+                                                $<%= (item.product.offerPrice).toFixed(2) %>
+                                            <% } else { %>
+                                                $<%= (item.product.price).toFixed(2) %>
+                                            <% } %>
+                                        </td>
+                                        <td class="wishlist__actions">
+                                            <a href="#" class="btn btn-outline-success add-to-cart" data-product-id="<%= item.product._id %>">Add to Cart</a>
+                                            <a href="/removeFromWishlist/<%= item.product._id %>" class="btn btn-outline-danger remove-item" data-product-id="<%= item.product._id %>">Remove</a>
+                                        </td>
+                                    </tr>
+                                    <% }) %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </section>
+    <!-- Wishlist Section End -->
+
+    <!-- Toast Notification -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="wishlistToast" class="toast align-items-center text-white bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <!-- The message will be injected here -->
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.querySelectorAll('.remove-item').forEach(button => {
+        button.addEventListener('click', async function(event) {
+            event.preventDefault(); // Prevent default link behavior
+
+            const productId = this.dataset.productId;
+            const productRow = this.closest('tr');
+
+            try {
+                const response = await fetch(`/removeFromWishlist/${productId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.message === 'Product removed from wishlist') {
+                    productRow.remove();
+
+                    if (document.querySelectorAll('tbody tr').length === 0) {
+                        document.querySelector('.wishlist__table').innerHTML = `
+                            <div class="empty-wishlist text-center">
+                                <h2 class="mb-3">Your wishlist is empty</h2>
+                                <p class="mb-4">It looks like you haven't added anything to your wishlist yet. Start shopping to add items!</p>
+                                <a href="/store" class="primary-btn">Continue Shopping</a>
+                            </div>
+                        `;
+                    }
+
+                    // SweetAlert2 success message
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Removed',
+                        text: 'Product removed from wishlist!',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                } else {
+                    console.error('Error:', data.message);
+
+                    // SweetAlert2 error message
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to remove the item from wishlist.'
+                    });
+                }
+            } catch (error) {
+                console.error('Request failed:', error);
+
+                // SweetAlert2 error message
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred while removing the item from the wishlist.'
+                });
+            }
+        });
+    });
+
+    document.querySelectorAll('.add-to-cart').forEach(button => {
+        button.addEventListener('click', async function(event) {
+            event.preventDefault(); // Prevent default link behavior
+            const productId = this.dataset.productId;
+            const button = this;
+
+            try {
+                button.disabled = true;
+
+                const response = await fetch('/add_to_cart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({ productId, quantity: 1 }),
+                });
+
+                if (response.ok) {
+                    window.location.href = '/cart';
+                } else {
+                    const data = await response.json();
+                    console.error('Error:', data.message);
+
+                    // SweetAlert2 error message
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to add the item to the cart.'
+                    });
+                }
+            } catch (error) {
+                console.error('Request failed:', error);
+
+                // SweetAlert2 error message
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred while adding the item to the cart.'
+                });
+            } finally {
+                button.disabled = false;
+            }
+        });
+    });
+
+    // Handle toast notifications
+    const urlParams = new URLSearchParams(window.location.search);
+    const status = urlParams.get('status');
+
+    if (status === 'added') {
+        showToast('Product successfully added to your wishlist.');
+    } else if (status === 'exists') {
+        showToast('Product is already in your wishlist.');
+    }
+
+    // Function to display toast
+    function showToast(message) {
+        Swal.fire({
+            icon: 'info',
+            title: 'Info',
+            text: message,
+            timer: 2000,
+            showConfirmButton: false
+        });
+    }
+    </script>
+</body>
+
+</body>
+    <%- include('../Layout/user/footer.ejs') -%>
+

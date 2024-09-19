@@ -4,7 +4,7 @@ const productSchema =   new mongoose.Schema({
     name:{
         type :String,
         required:true
-    },
+    },  
     productimages: {
         type: [String],
         required: true
@@ -27,6 +27,20 @@ const productSchema =   new mongoose.Schema({
         type :Number,
         required:true
     },
+    offerPrice: {
+        type: Number
+       
+    },
+    offers: [{
+        offerId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Offers',
+        },
+        discount: {
+            type: Number,
+            required: true, // Store discount percentage for each offer
+        }
+    }],
     discription:{
         type :String,
         required:true
