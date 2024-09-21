@@ -103,6 +103,7 @@ router.post('/placeOrder',userAuthentication,checkoutController.placeOrder);
 router.get('/orderConfirmation',userAuthentication,checkoutController.orderDetails);
 router.post('/placeorder/:id',userAuthentication,checkoutController.placeOrder);
 
+router.post('/placeOrderAfterPayment',userAuthentication,checkoutController.placeOrderAfterPayment);
 router.get('/razorpayCheckout',userAuthentication,checkoutController.razorpayCheckout);
 
 module.exports = router;

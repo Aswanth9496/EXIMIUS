@@ -74,10 +74,7 @@ updatedOrder.products[productindext].status=status
 const acceptReturnRequest = async (req, res) => {
     try {
         const { productId, orderId } = req.body;
-        console.log(orderId);
-        console.log(productId);
-        
-
+       
 
         // Find the order and update the product status and return request
         const order = await Orders.findOneAndUpdate(

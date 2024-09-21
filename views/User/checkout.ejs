@@ -904,41 +904,72 @@ document.addEventListener('DOMContentLoaded', () => {
         const paymentMethodValue = paymentMethod.value;
         
         if (paymentMethodValue === 'razorpay') {
-            try {
-                const totalAmount = document.getElementById('totalAmount').innerText;
+    try {
+        const totalAmount = document.getElementById('totalAmount').innerText;
 
-                const orderResponse = await fetch('/razorpayCheckout');
-                let data = await orderResponse.json();
+        // Fetch Razorpay order details from server
+        const orderResponse = await fetch('/razorpayCheckout');
+        let data = await orderResponse.json();
 
-                const options = {
-                    "key": data.keyId,
-                    "amount": totalAmount * 100, // Razorpay expects amount in paise
-                    "currency": "INR",
-                    "name": "Your Store Name",
-                    "description": "Test Transaction",
-                    "order_id": data.razorpayOrderId,
-                    "handler": function (response) {
-                        document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
-                        document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
-                        document.getElementById('razorpay_signature').value = response.razorpay_signature;
-                        document.getElementById('razorpay-payment-form').submit();
-                    },
-                    "prefill": {
-                        "name": "Customer Name",
-                        "email": "customer@example.com",
-                        "contact": "9999999999"
-                    },
-                    "theme": { "color": "#F37254" }
+        console.log('Razorpay Order Data:', data); // Log the data received
+
+        const options = {
+            key: data.keyId,
+            amount: data.totalAmount * 100, // Razorpay expects amount in paise
+            currency: "INR",
+            name: "Your Store Name",
+            description: "Test Transaction",
+            order_id: data.razorpayOrderId,
+            handler: function (response) {
+                console.log('Payment handler triggered'); // Added log to ensure handler is called
+                console.log('Razorpay Response:', response); // Log Razorpay response
+
+                const paymentDetails = {
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_signature: response.razorpay_signature,
+                    addressId : addressId,
+                    totalAmount: totalAmount // Total amount from DOM
                 };
 
-                const rzp1 = new Razorpay(options);
-                rzp1.open();
+                console.log('Payment Details:', paymentDetails); // Log payment details
 
-            } catch (error) {
-                console.error('Error initializing Razorpay payment:', error);
-                alert('Failed to initialize Razorpay payment.');
-            }
-        } else {
+                // Call the success route to place the order after payment
+                fetch('/placeOrderAfterPayment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(paymentDetails)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('Order successfully placed');
+                        window.location.href = '/orderConfirmation';
+                    } else {
+                        console.error('Failed to place order:', data);
+                        alert('Order could not be placed. Please try again.');
+                    }
+                })
+                .catch(error => console.error('Error placing order:', error));
+            },
+            "prefill": {
+                "name": "Customer Name",
+                "email": "customer@example.com",
+                "contact": "9999999999"
+            },
+            "theme": { "color": "#F37254" }
+        };
+
+        console.log('Initializing Razorpay with options:', options); // Log Razorpay options
+
+        const rzp1 = new Razorpay(options);
+        rzp1.open();
+
+    } catch (error) {
+        console.error('Error initializing Razorpay payment:', error);
+        alert('Failed to initialize Razorpay payment.');
+    }
+ } else {
             const response = await fetch('/placeOrder', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

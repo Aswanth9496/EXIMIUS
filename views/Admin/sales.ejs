@@ -1,0 +1,203 @@
+<%- include('../Layout/admin/headder.ejs') -%>
+
+<style>
+  .chart-container {
+    height: 300px;
+    position: relative;
+  }
+  .chart-placeholder {
+    width: 100%;
+    height: 100%;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-style: italic;
+    color: #6c757d;
+  }
+  .total-sales {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 18px;
+    font-weight: bold;
+  }
+  .order-status-legend {
+    display: flex;
+    justify-content: center;
+    margin-top: 15px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    margin: 0 10px;
+  }
+  .legend-color {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    margin-right: 5px;
+  }
+  .filter-export-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+</style>
+
+<div class="container-scroller">
+  <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
+    <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
+      <a class="navbar-brand brand-logo" href="index.html"><img src="images/logo.svg" alt="logo" /></a>
+      <a class="navbar-brand brand-logo-mini" href="index.html"><img src="images/logo-mini.svg" alt="logo" /></a>
+    </div>
+    <div class="navbar-menu-wrapper d-flex align-items-stretch">
+      <ul class="navbar-nav navbar-nav-right">
+        <li class="nav-item d-none d-lg-block full-screen-link">
+          <a class="nav-link"><i class="mdi mdi-fullscreen" id="fullscreen-button"></i></a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  
+  <div class="container-fluid page-body-wrapper">
+    <nav class="sidebar sidebar-offcanvas" id="sidebar">
+      <ul class="nav">
+        <li class="nav-item"><a class="nav-link" href="/admin/"><span class="menu-title">Dashboard</span><i class="mdi mdi-home menu-icon"></i></a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin/Product"><span class="menu-title">Product</span><i class="mdi mdi-cube-outline menu-icon"></i></a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin/Users"><span class="menu-title">Users</span><i class="mdi mdi-account menu-icon"></i></a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin/Orders"><span class="menu-title">Orders</span><i class="mdi mdi-cart menu-icon"></i></a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin/Sales"><span class="menu-title">Sales</span><i class="mdi mdi-chart-line menu-icon"></i></a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin/Coupon"><span class="menu-title">Coupons</span><i class="mdi mdi-ticket-percent menu-icon"></i></a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin/offers"><span class="menu-title">Offers</span><i class="mdi mdi-image menu-icon"></i></a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin/Category"><span class="menu-title">Categories</span><i class="mdi mdi-shape-outline menu-icon"></i></a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin/Brands"><span class="menu-title">Brands</span><i class="mdi mdi-tag-multiple menu-icon"></i></a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin/Logout"><span class="menu-title">Logout</span><i class="mdi mdi-logout menu-icon"></i></a></li>
+      </ul>
+    </nav>
+
+    <div class="content-wrapper">
+      <h2 class="mb-4">Sales Report</h2>
+      
+      <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+          <div class="card shadow-sm">
+            <div class="card-body text-center">
+              <h3 class="card-title mb-0"><%= totalOrders %></h3>
+              <p class="text-muted mb-0">Total Orders</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 mb-3">
+          <div class="card shadow-sm">
+            <div class="card-body text-center">
+              <h3 class="card-title mb-0">RS: <%= totalDiscount.toFixed(2) %></h3>
+              <p class="text-muted mb-0">Total Discount</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 mb-3">
+          <div class="card shadow-sm">
+            <div class="card-body text-center">
+              <h3 class="card-title mb-0">RS: <%= totalSalesAmount.toFixed(2) %></h3>
+              <p class="text-muted mb-0">Total Sales Amount</p>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3 mb-3">
+          <div class="card shadow-sm text-center">
+            <div class="card-body">
+              <i class="mdi mdi-calendar display-4 text-primary"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="filter-export-container">
+       
+        <div class="btn-group export-dropdown">
+          <button class="btn btn-primary dropdown-toggle" type="button" id="exportDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="mdi mdi-export"></i> Export
+        </button>
+        <div class="dropdown-menu" aria-labelledby="exportDropdown">
+            <a class="dropdown-item" href="/admin/exportSalesToPDF" data-toggle="tooltip" title="Download sales report as PDF">
+                <i class="mdi mdi-file-pdf"></i> Export as PDF
+            </a>
+            <a class="dropdown-item" href="/admin/exportSalesToExcel" data-toggle="tooltip" title="Download sales report as Excel">
+                <i class="mdi mdi-file-excel"></i> Export as Excel
+            </a>
+        </div>
+        </div>
+    </div>
+    
+
+      <div class="row">
+        <div class="col-12">
+          <div class="card shadow">
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="table table-hover table-striped">
+                  <thead class="thead-light">
+                    <tr>
+                      <th>Invoice No</th>
+                      <th>Customer Name</th>
+                      <th>Order Date</th>
+                      <th>Total Amount</th>
+                      <th>Payment Method</th>
+                      <th>Payment Status</th>
+                      <th>Order Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% salesData.forEach(sale => { %>
+                      <tr>
+                        <td><%= sale.orderId %></td>
+                        <td><%= sale.address.addressName %></td>
+                        <td><%= new Date(sale.orderDate).toLocaleDateString() %></td>
+                        <td>RS: <%= sale.totalAmount.toFixed(2) %></td>
+                        <td><%= sale.paymentMethod %></td>
+                        <td><%= sale.paymentStatus %></td>
+                        <td><%= sale.products[0]?.status || 'N/A' %></td>
+                      </tr>
+                    <% }) %>
+                  </tbody>
+                </table>
+              </div>
+
+              <nav aria-label="Sales report pagination">
+                <ul class="pagination justify-content-center">
+                  <% if (currentPage > 1) { %>
+                    <li class="page-item"><a class="page-link" href="?page=<%= currentPage - 1 %>&limit=<%= limit %>">Previous</a></li>
+                  <% } else { %>
+                    <li class="page-item disabled"><a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a></li>
+                  <% } %>
+
+                  <% for (let i = 1; i <= totalPages; i++) { %>
+                    <li class="page-item <%= i === currentPage ? 'active' : '' %>"><a class="page-link" href="?page=<%= i %>&limit=<%= limit %>"><%= i %></a></li>
+                  <% } %>
+
+                  <% if (currentPage < totalPages) { %>
+                    <li class="page-item"><a class="page-link" href="?page=<%= currentPage + 1 %>&limit=<%= limit %>">Next</a></li>
+                  <% } else { %>
+                    <li class="page-item disabled"><a class="page-link" href="#" tabindex="-1" aria-disabled="true">Next</a></li>
+                  <% } %>
+                </ul>
+              </nav>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Include jQuery first (if not already included) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Include Bootstrap's JS -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+
+<%- include('../Layout/admin/footer.ejs') -%>

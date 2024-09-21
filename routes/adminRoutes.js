@@ -15,6 +15,7 @@ const productController = require('../controllers/admin/productsController');
 const OrdersController = require('../controllers/admin/ordersController');
 const couponsController = require('../controllers/admin/couponsController');
 const offersController = require('../controllers/admin/offersController');
+const salesControll = require('../controllers/admin/salesControll');
 
 const upload = require('../config/multer');
 
@@ -76,7 +77,13 @@ app.post('/toggle-listing/:productId',isAuthenticated, productController.toggleL
 app.get('/Orders',isAuthenticated,OrdersController.loadOrders);
 app.get('/orderDetails/:id',isAuthenticated,OrdersController.orderDetails);
 app.post('/updateOrderStatus',isAuthenticated,OrdersController.updateOrderStatus);
-app.post('/acceptReturnRequest',isAuthenticated,OrdersController.acceptReturnRequest)
+app.post('/acceptReturnRequest',isAuthenticated,OrdersController.acceptReturnRequest);
+
+
+//sales
+app.get('/sales',isAuthenticated,salesControll.loadSales);
+app.get('/exportSalesToExcel',isAuthenticated,salesControll.exportSalesToExcel);
+app.get('/exportSalesToPDF',isAuthenticated,salesControll.exportSalesToPDF);
 
 
 
