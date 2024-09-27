@@ -183,7 +183,8 @@ const placeOrder = async (req, res) => {
             address,
             products,
             totalAmount,
-            orderDate: new Date()
+            orderDate: new Date(),
+            discountAmount:totalDiscount
         });
 
         // Save the order to the database
@@ -239,7 +240,7 @@ const calculateEffectivePrice = (product) => {
 
 const razorpayCheckout = async (req, res) => {
     try {
-        const { addressId } = req.query;
+        const { addressId, couponCode } = req.query;
         const userId = req.session.user.id;
 
         // Fetch user's cart and calculate total amount
@@ -251,12 +252,39 @@ const razorpayCheckout = async (req, res) => {
         // Calculate total amount considering offers
         let totalAmount = cart.products.reduce((sum, item) => {
             const product = item.product;
-
-            // Calculate the effective price with offers
-            const effectivePrice = calculateEffectivePrice(product);
-
+            const effectivePrice = calculateEffectivePrice(product); // Assuming this function calculates price with offers
             return sum + (effectivePrice * item.quantity);
         }, 0);
+
+        // Initialize discount
+        let discountAmount = 0;
+
+        // Validate and apply coupon if provided
+        if (couponCode) {
+            const coupon = await Coupon.findOne({ code: couponCode, status: true });
+
+            if (!coupon) {
+                return res.status(400).json({ success: false, message: 'Invalid or expired coupon code.' });
+            }
+
+          
+
+            // Check minimum purchase amount
+            if (totalAmount < coupon.minPurchaseAmount) {
+                return res.status(400).json({ success: false, message: `Minimum purchase amount for this coupon is ₹${coupon.minPurchaseAmount}.` });
+            }
+
+            // Calculate discount amount
+            discountAmount = (totalAmount * (coupon.discount / 100));
+
+            // Apply maximum discount limit, if any
+            if (coupon.maxDiscountAmount && discountAmount > coupon.maxDiscountAmount) {
+                discountAmount = coupon.maxDiscountAmount;
+            }
+
+            // Apply the discount
+            totalAmount -= discountAmount;
+        }
 
         // Create Razorpay order
         const options = {
@@ -268,19 +296,20 @@ const razorpayCheckout = async (req, res) => {
 
         const razorpayOrder = await razorpay.orders.create(options);
         if (!razorpayOrder) {
-            console.error("Failed to create Razorpay order");
-            return res.status(500).json({ success: false, message: 'Failed to create Razorpay order' });
+            return res.status(500).json({ success: false, message: 'Failed to create Razorpay order.' });
         }
 
+        // Send response with the updated total amount and Razorpay order details
         res.json({
             razorpayOrderId: razorpayOrder.id,
             totalAmount: totalAmount,
+            discountAmount: discountAmount, // Provide discount information
             keyId: process.env.RAZORPAY_KEY_ID,
             addressId: addressId
         });
 
     } catch (error) {
-        console.error('Error during Razorpay checkout:', error); // Log error for further investigation
+        console.error('Error during Razorpay checkout:', error);
         res.status(500).json({ success: false, message: 'Server Error' });
     }
 };
@@ -289,11 +318,8 @@ const razorpayCheckout = async (req, res) => {
 
 
 
-
 // Function to verify Razorpay payment and place the order
 const placeOrderAfterPayment = async (req, res) => {
-  
-
     const { razorpay_payment_id, razorpay_order_id, razorpay_signature, addressId, couponCode, totalAmount } = req.body;
     const userId = req.session.user.id;
 
@@ -324,6 +350,8 @@ const placeOrderAfterPayment = async (req, res) => {
         cleanedTotalAmount = parseFloat(cleanedTotalAmount);  // Convert string to a number
 
         const products = [];
+        let totalProductAmount = 0; // This will calculate the total amount of all products (before discount)
+
         for (const item of cart.products) {
             const price = item.product.offerPrice || item.product.price;
             const totalPrice = price * item.quantity;
@@ -332,6 +360,8 @@ const placeOrderAfterPayment = async (req, res) => {
             if (item.product.stock < item.quantity) {
                 return res.status(400).json({ success: false, message: `Not enough stock for ${item.product.name}` });
             }
+
+            totalProductAmount += totalPrice;
 
             products.push({
                 productId: item.product._id,
@@ -342,15 +372,38 @@ const placeOrderAfterPayment = async (req, res) => {
             });
         }
 
-        // Step 5: Apply coupon discount if any
+        // Step 5: Apply coupon discount if any and distribute proportionally
+        let discount = 0;
         if (couponCode) {
             const coupon = await Coupon.findOne({ code: couponCode, status: true });
             if (coupon) {
-                let discount = (cleanedTotalAmount * coupon.discount) / 100;
+                discount = (cleanedTotalAmount * coupon.discount) / 100;
                 if (coupon.maxDiscountAmount > 0) {
                     discount = Math.min(discount, coupon.maxDiscountAmount);
                 }
-                cleanedTotalAmount -= discount;  // Apply discount to the total amount
+
+                // Distribute discount proportionally among the products
+                let totalDiscountDistributed = 0;
+                products.forEach((product, index) => {
+                    const productShare = product.totalPrice / totalProductAmount;  // Percentage share of product
+                    let productDiscount = discount * productShare;
+                    productDiscount = Math.round(productDiscount * 100) / 100;  // Round to two decimal places
+
+                    // Apply discount to the product totalPrice
+                    product.totalPrice -= productDiscount;
+
+                    // Keep track of total discount applied
+                    totalDiscountDistributed += productDiscount;
+
+                    // For the last product, adjust rounding difference
+                    if (index === products.length - 1) {
+                        const roundingDifference = discount - totalDiscountDistributed;
+                        product.totalPrice -= roundingDifference;  // Ensure exact total discount
+                    }
+                });
+
+                // Adjust the cleanedTotalAmount after discount distribution
+                cleanedTotalAmount 
             }
         }
 
@@ -365,10 +418,11 @@ const placeOrderAfterPayment = async (req, res) => {
             paymentStatus: 'Success',  // Use a valid value from the enum
             address,
             products,
-            totalAmount: cleanedTotalAmount,  // Use the cleaned total amount
+            totalAmount: cleanedTotalAmount,  // Use the cleaned total amount after discount
             orderDate: new Date(),
             razorpayPaymentId: razorpay_payment_id,
-            razorpayOrderId: razorpay_order_id
+            razorpayOrderId: razorpay_order_id,
+            discountAmount: discount  // Track the applied discount
         });
 
         // Step 8: Save the order
@@ -376,18 +430,15 @@ const placeOrderAfterPayment = async (req, res) => {
 
         // Step 9: Clear the user's cart after successful order
         await Cart.updateOne({ user: userId }, { $set: { products: [] } });
-        console.log(newOrder.orderId);
-        
-        req.session.orderId = newOrder.orderId;
 
-        // Step 10: Send a success response with the order ID
+        // Step 10: Save the orderId in session and send success response
+        req.session.orderId = newOrder.orderId;
         res.json({ success: true, orderId: newOrder.orderId });
     } catch (error) {
         console.error('Error while placing order after payment:', error);
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
 };
-
 
 
 

@@ -1,6 +1,60 @@
 
 <%- include('../Layout/user/hedder.ejs') -%>
 
+<style>
+    .pagination {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.pagination a, .pagination span {
+    padding: 10px 15px;
+    margin: 0 5px;
+    text-decoration: none;
+    border: 1px solid #ddd;
+    color: #333;
+}
+
+.pagination .current {
+    background-color: #28a745; /* Highlight current page */
+    color: white;
+}
+
+.pagination a:hover {
+    background-color: #ddd; /* Add hover effect */
+}
+
+
+.pagination {
+    display: flex;
+    justify-content: center; /* Center the pagination */
+    align-items: center; /* Center vertically */
+    margin-top: 20px; /* Space above pagination */
+    margin-bottom: 20px; /* Space below pagination */
+}
+
+.pagination-link {
+    padding: 10px 15px; /* Space around links */
+    margin: 0 5px; /* Space between buttons */
+    border: 1px solid #ddd; /* Border around the buttons */
+    border-radius: 5px; /* Rounded corners */
+    text-decoration: none; /* Remove underline */
+    color: #333; /* Text color */
+    transition: background-color 0.3s; /* Smooth transition for hover effect */
+}
+
+.pagination-link:hover {
+    background-color: #f0f0f0; /* Light grey background on hover */
+}
+
+.current {
+    font-weight: bold; /* Bold text for the current page */
+    color: #28a745; /* Change color for the current page indicator */
+}
+
+
+</style>
 
 <body>
     <!-- Header Section Begin -->
@@ -158,22 +212,22 @@
                                                 <ul>
                                                     <li>
                                                         <label>
-                                                            <input type="radio" name="sort" value="low-to-high"> Low to High
+                                                            <input type="radio" name="sort" value="low-to-high" <%= sort === 'low-to-high' ? 'checked' : '' %>> Low to High
                                                         </label>
                                                     </li>
                                                     <li>
                                                         <label>
-                                                            <input type="radio" name="sort" value="high-to-low"> High to Low
+                                                            <input type="radio" name="sort" value="high-to-low" <%= sort === 'high-to-low' ? 'checked' : '' %>> High to Low
                                                         </label>
                                                     </li>
                                                     <li>
                                                         <label>
-                                                            <input type="radio" name="sort" value="a-to-z"> aA to zZ
+                                                            <input type="radio" name="sort" value="a-to-z" <%= sort === 'a-to-z' ? 'checked' : '' %>> aA to zZ
                                                         </label>
                                                     </li>
                                                     <li>
                                                         <label>
-                                                            <input type="radio" name="sort" value="z-to-a"> zZ to aA
+                                                            <input type="radio" name="sort" value="z-to-a" <%= sort === 'z-to-a' ? 'checked' : '' %>> zZ to aA
                                                         </label>
                                                     </li>
                                                 </ul>
@@ -181,6 +235,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                
                             </div>
                         </div>
                     </div>
@@ -231,11 +286,34 @@
                             <% }) %>
                         </div>
                     </div>
-                </div>
+                   
                 
             </div>
         </div>
     </section>
+    <!-- Pagination Controls -->
+<div class="pagination">
+    <% if (totalResults > itemsPerPage) { %> <!-- Only show pagination if total results exceed items per page -->
+        <% if (currentPage > 1) { %>
+            <a href="?page=<%= currentPage - 1 %>&search=<%= search || '' %>&categories=<%= selectedCategories.join(',') %>&brands=<%= selectedBrands.join(',') %>&sort=<%= sort || '' %>">Previous</a>
+        <% } %>
+
+        <% for (let i = 1; i <= totalPages; i++) { %>
+            <% if (i === currentPage) { %>
+                <span class="current"><%= i %></span>
+            <% } else { %>
+                <a href="?page=<%= i %>&search=<%= search || '' %>&categories=<%= selectedCategories.join(',') %>&brands=<%= selectedBrands.join(',') %>&sort=<%= sort || '' %>"><%= i %></a>
+            <% } %>
+        <% } %>
+
+        <% if (currentPage < totalPages) { %>
+            <a href="?page=<%= currentPage + 1 %>&search=<%= search || '' %>&categories=<%= selectedCategories.join(',') %>&brands=<%= selectedBrands.join(',') %>&sort=<%= sort || '' %>">Next</a>
+        <% } %>
+    <% } %>
+</div>
+
+
+    
     
     <!-- Footer Section -->
     <footer class="footer">
@@ -290,6 +368,8 @@
         </div>
     </div>
     
+
+
     <!-- JavaScript for hover effect and filter handling -->
     <script>
         // Hover effect for product images
@@ -352,3 +432,5 @@
     </script>
     
     <%- include('../Layout/user/footer.ejs') -%>
+
+

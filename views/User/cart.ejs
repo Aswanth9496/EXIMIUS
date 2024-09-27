@@ -105,11 +105,11 @@
                                                 <h6><%= item.product.name %></h6>
                                                 <% if (item.product.offerPrice) { %>
                                                     <h5>
-                                                        <del>$<%= item.product.price.toFixed(2) %></del> 
-                                                        $<%= item.product.offerPrice.toFixed(2) %>
+                                                        <del>RS:<%= item.product.price.toFixed(2) %></del> 
+                                                        RS:<%= item.product.offerPrice.toFixed(2) %>
                                                     </h5>
                                                 <% } else { %>
-                                                    <h5>$<%= item.product.price.toFixed(2) %></h5>
+                                                    <h5>RS:<%= item.product.price.toFixed(2) %></h5>
                                                 <% } %>
                                             </div>
                                         </td>
@@ -122,9 +122,9 @@
                                         </td>
                                         <td class="cart__price">
                                             <% if (item.product.offerPrice) { %>
-                                                $<%= (item.product.offerPrice * item.quantity).toFixed(2) %>
+                                                RS:<%= (item.product.offerPrice * item.quantity).toFixed(2) %>
                                             <% } else { %>
-                                                $<%= (item.product.price * item.quantity).toFixed(2) %>
+                                                RS:<%= (item.product.price * item.quantity).toFixed(2) %>
                                             <% } %>
                                         </td>
                                         <td class="cart__close">
@@ -156,8 +156,8 @@
                             // Update totalPrice if offer prices are included
                             const totalPrice = subtotal; 
                             %>
-                            <li>Subtotal <span>$<%= subtotal.toFixed(2) %></span></li>
-                            <li>Total <span>$<%= totalPrice.toFixed(2) %></span></li>
+                            <li>Subtotal <span>RS:<%= subtotal.toFixed(2) %></span></li>
+                            <li>Total <span>RS:<%= totalPrice.toFixed(2) %></span></li>
                         </ul>
                         <a href="/checkout" class="primary-btn">Proceed to checkout</a>
                     </div>
@@ -173,92 +173,113 @@
 
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Remove item from cart (SweetAlert for confirmation)
-        const removeButtons = document.querySelectorAll('.remove-item');
-        removeButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const productId = this.getAttribute('data-id');
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: "You won't be able to revert this!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Yes, remove it!'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        fetch(`/removeFromCart/${productId}`, {
-                            method: 'DELETE',
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                Swal.fire(
-                                    'Removed!',
-                                    'The product has been removed from your cart.',
-                                    'success'
-                                ).then(() => {
-                                    window.location.reload();
-                                });
-                            } else {
-                                Swal.fire(
-                                    'Error!',
-                                    'There was an issue removing the product.',
-                                    'error'
-                                );
-                            }
-                        })
-                        .catch(error => {
-                            Swal.fire(
-                                'Error!',
-                                'There was an issue removing the product.',
-                                'error'
-                            );
-                        });
-                    }
-                });
-            });
-        });
-    
-        // Automatically update cart when quantity changes (no SweetAlert)
-        const quantityInputs = document.querySelectorAll('.quantity-input');
-        quantityInputs.forEach(input => {
-            input.addEventListener('change', function() {
-                const productId = this.getAttribute('data-id');
-                const newQuantity = Math.min(5, Math.max(1, this.value)); // Enforce min and max limits
-    
-                // Prepare data for cart update
-                const data = {
-                    [productId]: newQuantity
-                };
-    
-                fetch('/updateCart', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Optionally, you can update the total price without refreshing the entire page
-                        // For now, just reload the page to reflect changes
-                        window.location.reload();
-                    } else {
-                        console.error('Error updating the cart');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error updating the cart:', error);
-                });
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Remove item from cart (SweetAlert for confirmation)
+    const removeButtons = document.querySelectorAll('.remove-item');
+    removeButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            const productId = this.getAttribute('data-id');
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, remove it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`/removeFromCart/${productId}`, {
+                        method: 'DELETE',
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire('Removed!', 'The product has been removed from your cart.', 'success')
+                            .then(() => {
+                                // Remove the row from the table without reloading the page
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire('Error!', 'There was an issue removing the product.', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire('Error!', 'There was an issue removing the product.', 'error');
+                    });
+                }
             });
         });
     });
-    </script>
-    
 
+    // Automatically update cart when quantity changes
+    const quantityInputs = document.querySelectorAll('.quantity-input');
+    quantityInputs.forEach(input => {
+        input.addEventListener('change', function () {
+            const productId = this.getAttribute('data-id');
+            let newQuantity = Math.min(5, Math.max(1, this.value)); // Ensure the quantity stays between 1 and 5
 
+            // Prepare the data for the cart update request
+            const data = {
+                [productId]: newQuantity
+            };
+
+            // Make an AJAX request to update the cart
+            fetch('/updateCart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update the totals in the UI dynamically
+                    updateCartUI();
+                } else {
+                    Swal.fire('Error!', 'Error updating cart. Please try again.', 'error');
+                }
+            })
+            .catch(error => {
+                Swal.fire('Error!', 'Error updating cart.', 'error');
+                console.error('Error updating cart:', error);
+            });
+        });
+    });
+});
+
+// Function to update the cart UI dynamically
+function updateCartUI() {
+    const rows = document.querySelectorAll('tbody tr');
+    let subtotal = 0;
+
+    rows.forEach(row => {
+        const quantityInput = row.querySelector('.quantity-input');
+        const productId = quantityInput.getAttribute('data-id');
+        const quantity = parseInt(quantityInput.value, 10);
+
+        // Get the price element and calculate price
+        const priceElement = row.querySelector('.product__cart__item__text h5');
+        const priceText = priceElement.innerText.replace('$', '').replace('del', '').trim();
+        const price = parseFloat(priceText);
+
+        // Calculate the total price for this product
+        const total = price * quantity;
+
+        // Update the total price in the DOM for the product
+        const totalPriceElement = row.querySelector('.cart__price');
+        totalPriceElement.innerText = `$${total.toFixed(2)}`;
+
+        // Add the total to the subtotal
+        subtotal += total;
+    });
+
+    // Update the subtotal and total in the cart
+    document.querySelector('.cart__total ul li:nth-child(1) span').innerText = `$${subtotal.toFixed(2)}`;
+    document.querySelector('.cart__total ul li:nth-child(2) span').innerText = `$${subtotal.toFixed(2)}`;
+}
+
+</script>
 <%- include('../Layout/user/footer.ejs') -%>

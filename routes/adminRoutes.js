@@ -84,7 +84,7 @@ app.post('/acceptReturnRequest',isAuthenticated,OrdersController.acceptReturnReq
 app.get('/sales',isAuthenticated,salesControll.loadSales);
 app.get('/exportSalesToExcel',isAuthenticated,salesControll.exportSalesToExcel);
 app.get('/exportSalesToPDF',isAuthenticated,salesControll.exportSalesToPDF);
-
+app.get('/salesfilter',isAuthenticated,salesControll.filterSales);
 
 
 

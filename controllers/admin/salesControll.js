@@ -5,100 +5,246 @@ const ExcelJS = require('exceljs');
 
 
 
+
 const loadSales = async (req, res) => {
-    try {
-      // Get the current page and limit from the query parameters (defaults to page 1 and limit 10)
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 10;
-  
-      // Calculate the number of items to skip based on the current page
-      const skip = (page - 1) * limit;
-  
-      // Fetch total count of orders that match the criteria (for pagination)
-      const totalOrdersCount = await orders.countDocuments({
-        $or: [
-          { paymentStatus: 'Success' }, // Razorpay successful payments
-          { 'products.status': 'Delivered' } // COD Delivered
-        ],
-        'products.status': { $nin: ['Cancelled', 'Returned'] } // Exclude Cancelled or Returned orders
-      });
-  
-      // Fetch sales orders with pagination (skip and limit)
-      const salesData = await orders.find({
-        $or: [
-          { paymentStatus: 'Success' }, // Razorpay successful payments
-          { 'products.status': 'Delivered' } // COD Delivered
-        ],
-        'products.status': { $nin: ['Cancelled', 'Returned'] } // Exclude Cancelled or Returned orders
-      })
-        .skip(skip)
-        .limit(limit);
-  
-      // Calculate total discount and total sales amount
-      const totalDiscount = salesData.reduce((sum, order) => sum + (order.discountAmount || 0), 0);
-      const totalSalesAmount = salesData.reduce((sum, order) => sum + order.totalAmount, 0);
-  
-      // Calculate total pages based on total orders and limit
-      const totalPages = Math.ceil(totalOrdersCount / limit);
-  
-      // Render the sales view with dynamic data and pagination variables
-      res.render('sales', {
-        totalOrders: totalOrdersCount, // Pass the total orders count
-        totalDiscount,
-        totalSalesAmount,
-        salesData,
-        currentPage: page,
-        totalPages,
-        limit
-      });
-    } catch (error) {
-      console.log(error);
-      res.status(500).send('An error occurred while loading sales data');
+
+  try {
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+
+    // Validate page and limit
+    if (page < 1 || limit < 1 || limit > 100) { // Added upper limit for pagination
+      return res.status(400).send('Invalid page or limit. Ensure limit is between 1 and 100.');
     }
-  };
-  
 
+    const skip = (page - 1) * limit;
 
+    // Construct the query to fetch all sales data
+    const query = {
+      paymentStatus: 'Success',
+      'products.status': { $nin: ['Cancelled', 'Returned'] }
+    };
 
+    const totalOrdersCount = await orders.countDocuments(query);
+    const salesData = await orders.find(query).skip(skip).limit(limit);
 
+    console.log(`Total filtered sales: ${salesData.length}`);
 
-  const exportSalesToPDF = async (req, res) => {
-    try {
-        const salesData = await orders.find({
-            $or: [
-                { paymentStatus: 'Success' },
-                { 'products.status': 'Delivered' }
-            ],
-            'products.status': { $nin: ['Cancelled', 'Returned'] }
-        }).lean();
+    const totalDiscount = salesData.reduce((sum, order) => sum + (order.discountAmount || 0), 0);
+    const totalSalesAmount = salesData.reduce((sum, order) => {
+      return sum + order.products.reduce((total, product) => {
+        return product.status !== 'Cancelled' && product.status !== 'Returned' ? total + product.totalPrice : total;
+      }, 0);
+    }, 0);
 
-        const doc = new PDFDocument();
-        let filename = 'Sales_Report.pdf';
-        res.setHeader('Content-disposition', `attachment; filename=${filename}`);
-        res.setHeader('Content-type', 'application/pdf');
+    const totalPages = Math.ceil(totalOrdersCount / limit);
 
-        doc.pipe(res);
-        
-        doc.fontSize(25).text('Sales Report', { align: 'center' });
-        doc.moveDown();
-
-        salesData.forEach(sale => {
-            doc.text(`Invoice No: ${sale.orderId}`);
-            doc.text(`Customer Name: ${sale.address.addressName}`);
-            doc.text(`Order Date: ${new Date(sale.orderDate).toLocaleDateString()}`);
-            doc.text(`Total Amount: RS: ${sale.totalAmount.toFixed(2)}`);
-            doc.text(`Payment Method: ${sale.paymentMethod}`);
-            doc.text(`Payment Status: ${sale.paymentStatus}`);
-            doc.text(`Order Status: ${sale.products[0]?.status || 'N/A'}`);
-            doc.moveDown();
-        });
-
-        doc.end();
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('An error occurred while exporting sales data to PDF');
-    }
+    res.render('sales', {
+      totalOrders: totalOrdersCount,
+      totalDiscount,
+      totalSalesAmount,
+      salesData,
+      currentPage: page,
+      totalPages,
+      limit
+    });
+  } catch (error) {
+    console.error('Error fetching all sales data:', error);
+    res.status(500).send('An error occurred while loading sales data. Please try again later.');
+  }
 };
+
+
+
+
+
+
+
+const filterSales = async (req, res) => {
+  try {
+    console.log("Received request to filter sales:", req.query);
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    if (page < 1 || limit < 1) {
+      console.error('Invalid page or limit');
+      return res.status(400).send('Invalid page or limit');
+    }
+
+    const dateRange = req.query.dateRange || 'all';
+    const startDateParam = req.query.startDate ? new Date(req.query.startDate) : null;
+
+    // Validate startDate if provided
+    if (startDateParam && isNaN(startDateParam.getTime())) {
+      console.error('Invalid startDate:', req.query.startDate);
+      return res.status(400).send('Invalid startDate');
+    }
+
+    // Log the date range and start date determination
+    console.log('Date Range:', dateRange);
+    console.log('Start Date Param:', startDateParam);
+
+    let startDate;
+    const endDate = new Date();
+
+    // Determine startDate based on query or date range
+    if (startDateParam) {
+      startDate = startDateParam;
+    } else {
+      switch (dateRange) {
+        case '1w':
+          startDate = new Date();
+          startDate.setDate(endDate.getDate() - 7);
+          break;
+        case '1m':
+          startDate = new Date();
+          startDate.setMonth(endDate.getMonth() - 1);
+          break;
+        case '1y':
+          startDate = new Date();
+          startDate.setFullYear(endDate.getFullYear() - 1);
+          break;
+        case 'all':
+        default:
+          startDate = null;
+          break;
+      }
+    }
+
+    const skip = (page - 1) * limit;
+
+    const query = {
+      paymentStatus: 'Success',
+      'products.status': { $nin: ['Cancelled', 'Returned'] }
+    };
+
+    if (startDate) {
+      query.orderDate = {
+        $gte: startDate,
+        $lte: endDate
+      };
+    }
+
+    console.log('MongoDB Query:', query);
+
+    const totalOrdersCount = await orders.countDocuments(query);
+    const salesData = await orders.find(query).skip(skip).limit(limit);
+
+    console.log(`Total filtered sales: ${salesData.length}`);
+
+    const totalDiscount = salesData.reduce((sum, order) => sum + (order.discountAmount || 0), 0);
+    const totalSalesAmount = salesData.reduce((sum, order) => {
+      const validAmount = order.products.reduce((total, product) => {
+        return product.status !== 'Cancelled' && product.status !== 'Returned' ? total + product.totalPrice : total;
+      }, 0);
+      return sum + validAmount;
+    }, 0);
+
+    const totalPages = Math.ceil(totalOrdersCount / limit);
+
+    res.render('sales', {
+      totalOrders: totalOrdersCount,
+      totalDiscount,
+      totalSalesAmount,
+      salesData,
+      currentPage: page,
+      totalPages,
+      limit
+    });
+  } catch (error) {
+    console.error('Error fetching filtered sales data:', error.message || error);
+    res.status(500).send('An error occurred while loading sales data');
+  }
+};
+
+
+
+
+const exportSalesToPDF = async (req, res) => {
+  try {
+      const salesData = await orders.find({
+          $or: [
+              { paymentStatus: 'Success' },
+              { 'products.status': 'Delivered' }
+          ],
+          'products.status': { $nin: ['Cancelled', 'Returned'] }
+      }).lean();
+
+      const doc = new PDFDocument();
+      let filename = 'Sales_Report.pdf';
+      res.setHeader('Content-disposition', `attachment; filename=${filename}`);
+      res.setHeader('Content-type', 'application/pdf');
+
+      doc.pipe(res);
+
+      // Title
+      doc.fontSize(25).text('Sales Report', { align: 'center' });
+      doc.moveDown(2);
+
+      // Define the table headers
+      const tableHeaders = [
+          'Invoice No', 'Customer Name', 'Order Date', 
+          'Total Amount (RS)', 'Payment Method', 
+          'Payment Status', 'Order Status'
+      ];
+
+      const columnWidths = [100, 100, 100, 100, 100, 100, 100]; // Adjust column widths as needed
+      const startX = 50; // Starting X position for the table
+      let startY = doc.y; // Starting Y position for the table
+
+      // Draw table headers
+      doc.fontSize(12).font('Helvetica-Bold');
+      tableHeaders.forEach((header, i) => {
+          doc.text(header, startX + columnWidths.slice(0, i).reduce((a, b) => a + b, 0), startY, {
+              width: columnWidths[i],
+              align: 'center'
+          });
+      });
+
+      // Draw a line under the headers
+      doc.moveTo(startX, startY + 20)
+         .lineTo(startX + columnWidths.reduce((a, b) => a + b, 0), startY + 20)
+         .stroke();
+
+      // Reset font for the table rows
+      doc.font('Helvetica').moveDown();
+
+      // Draw table rows
+      salesData.forEach(sale => {
+          let rowY = doc.y + 10; // Starting Y position for each row
+
+          const rowValues = [
+              sale.orderId,
+              sale.address.addressName,
+              new Date(sale.orderDate).toLocaleDateString(),
+              `RS: ${sale.totalAmount.toFixed(2)}`,
+              sale.paymentMethod,
+              sale.paymentStatus,
+              sale.products[0]?.status || 'N/A'
+          ];
+
+          rowValues.forEach((value, i) => {
+              doc.text(value, startX + columnWidths.slice(0, i).reduce((a, b) => a + b, 0), rowY, {
+                  width: columnWidths[i],
+                  align: 'center'
+              });
+          });
+
+          // Move down to the next row
+          doc.moveDown();
+      });
+
+      // End the document
+      doc.end();
+  } catch (error) {
+      console.error(error);
+      res.status(500).send('An error occurred while exporting sales data to PDF');
+  }
+};
+
+
+
 
 const exportSalesToExcel = async (req, res) => {
     try {
@@ -152,6 +298,7 @@ const exportSalesToExcel = async (req, res) => {
 
 module.exports ={
     loadSales,
-    exportSalesToExcel,
-    exportSalesToPDF
+    exportSalesToExcel, 
+    exportSalesToPDF,
+    filterSales
 }

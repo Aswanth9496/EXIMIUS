@@ -1,15 +1,20 @@
+const Products =require('../../models/productsModel');
+
 
 
 // Load home page
-const lodeHomePage = async (req, res) => {
+const loadHomePage = async (req, res) => {
     try {
-        const userData =req.session.user   
+        const userData = req.session?.user || null; 
+        const products = await  Products.find({ listed: true }).populate('category').populate('brand');
+
         
-        res.render('home',{
-            userData: userData ? userData:null
+        res.render('home', {
+            userData ,
+            products
         });
     } catch (error) {
-        console.log(error.message);
+        console.error('Error loading home page:', error.message);
     }
 };
 
@@ -29,7 +34,7 @@ const logOut = async (req,res)=>{
 
 
 module.exports = {
-    lodeHomePage,
+    loadHomePage,
     logOut
    
 }

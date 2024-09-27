@@ -739,6 +739,7 @@ font-weight: bold;
 
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
 <script>
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -908,7 +909,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalAmount = document.getElementById('totalAmount').innerText;
 
         // Fetch Razorpay order details from server
-        const orderResponse = await fetch('/razorpayCheckout');
+        const orderResponse = await fetch(`/razorpayCheckout?couponCode=${couponCode}`);
         let data = await orderResponse.json();
 
         console.log('Razorpay Order Data:', data); // Log the data received
@@ -929,7 +930,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     razorpay_order_id: response.razorpay_order_id,
                     razorpay_signature: response.razorpay_signature,
                     addressId : addressId,
-                    totalAmount: totalAmount // Total amount from DOM
+                    totalAmount: totalAmount, // Total amount from DOM,
+                    couponCode : couponCode
                 };
 
                 console.log('Payment Details:', paymentDetails); // Log payment details
@@ -1059,76 +1061,87 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-<!-- Add this script to handle coupon application -->
 <script>
-   
+    document.addEventListener('DOMContentLoaded', () => {
+        const removeCouponBtn = document.getElementById('removeCouponBtn');
+        const couponForm = document.getElementById('couponForm');
 
-   document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('couponForm').addEventListener('submit', async function(event) {
-        event.preventDefault();
+        couponForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
 
-        const couponCode = document.getElementById('coupon-code').value.trim();
-        const totalAmountElement = document.getElementById('totalAmount');
-        
-        if (!totalAmountElement) {
-            console.error('Total Amount element not found.');
-            showMessage('Error retrieving total amount.', 'error');
-            return;
-        }
-
-        // Extract and convert total amount
-        const totalAmountText = totalAmountElement.innerText.replace('₹', '').replace(',', '');
-        const totalAmount = parseFloat(totalAmountText);
-
-        if (!couponCode || isNaN(totalAmount)) {
-            showMessage('Please enter a valid coupon code and ensure the total amount is correct.', 'error');
-            return;
-        }
-
-        try {
-            const response = await fetch('/applyCoupon', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ couponCode, totalAmount })
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                const discount = result.discount;
-                const discountedTotal = totalAmount - discount;
-
-                document.querySelector('.discount-item').style.display = 'flex';
-                document.querySelector('.discount-amount').innerText = `₹ ${discount.toFixed(2)}`;
-                document.getElementById('totalAmount').innerText = `₹ ${discountedTotal.toFixed(2)}`;
-                removeCouponBtn.style.display = 'inline-block';
-                showMessage(`${result.message} You get ₹ ${discount.toFixed(2)} off!`, 'success');
-            } else {
-                showMessage(result.message, 'error');
+            const couponCode = document.getElementById('coupon-code').value.trim();
+            const totalAmountElement = document.getElementById('totalAmount');
+            
+            if (!totalAmountElement) {
+                console.error('Total Amount element not found.');
+                showMessage('Error retrieving total amount.', 'error');
+                return;
             }
-        } catch (error) {
-            console.error('Error applying coupon:', error);
-            showMessage('An error occurred while applying the coupon. Please try again.', 'error');
+
+            // Extract and convert total amount
+            const totalAmountText = totalAmountElement.innerText.replace('₹', '').replace(',', '');
+            const totalAmount = parseFloat(totalAmountText);
+
+            if (!couponCode || isNaN(totalAmount)) {
+                showMessage('Please enter a valid coupon code and ensure the total amount is correct.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/applyCoupon', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ couponCode, totalAmount })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    const discount = result.discount;
+                    const discountedTotal = totalAmount - discount;
+
+                    document.querySelector('.discount-item').style.display = 'flex';
+                    document.querySelector('.discount-amount').innerText = `₹ ${discount.toFixed(2)}`;
+                    totalAmountElement.innerText = `₹ ${discountedTotal.toFixed(2)}`;
+                    removeCouponBtn.style.display = 'inline-block';
+                    showMessage(`${result.message} You get ₹ ${discount.toFixed(2)} off!`, 'success');
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error applying coupon:', error);
+                showMessage('An error occurred while applying the coupon. Please try again.', 'error');
+            }
+        });
+
+        // Handling Remove Coupon button click
+        removeCouponBtn.addEventListener('click', () => {
+            location.reload();
+            // Refresh the coupon field and total amount
+            document.getElementById('coupon-code').value = ""; // Clear coupon input
+            removeCouponBtn.style.display = 'none'; // Hide remove button
+
+            // Reset total amount to original
+            const originalAmount = parseFloat(totalAmountElement.dataset.originalAmount); // Get original amount
+            totalAmountElement.innerText = `₹ ${originalAmount.toFixed(2)}`; // Reset to original amount
+            document.querySelector('.discount-item').style.display = 'none'; // Hide discount item
+            showMessage('Coupon removed successfully.', 'success');
+        });
+
+        function showMessage(message, type) {
+            const messageBox = document.getElementById('message');
+            messageBox.className = '';
+            messageBox.classList.add('alert', type === 'success' ? 'alert-success' : 'alert-danger');
+            messageBox.textContent = message;
+            messageBox.setAttribute('aria-live', 'polite');
         }
+
+        // Hide remove button initially
+        removeCouponBtn.style.display = 'none';
+        
+
     });
-
-    function showMessage(message, type) {
-        const messageBox = document.getElementById('message');
-        messageBox.className = '';
-        messageBox.classList.add('alert', type === 'success' ? 'alert-success' : 'alert-danger');
-        messageBox.textContent = message;
-        messageBox.setAttribute('aria-live', 'polite');
-    }
-
-    // Hide remove button initially
-    removeCouponBtn.style.display = 'none';
-});
-
-
-
 </script>
-
-
 
     
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">

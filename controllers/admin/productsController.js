@@ -4,6 +4,8 @@ const brand =require('../../models/brandModel');
 const path = require('path');
 const fs = require('fs');
 
+
+
 // load the product page
 const loadProductsPage = async (req, res) => {
   try {
@@ -84,6 +86,8 @@ const addProduct = async (req, res) => {
   };
 
 
+
+  
   const loadEditProduct = async (req, res) => {
     try {
       const productId = req.query.id;

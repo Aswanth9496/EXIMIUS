@@ -18,11 +18,11 @@ const checkoutController = require('../controllers/user/checkoutControl');
 const orderListController =require('../controllers/user/userOrderListControll');
 const walletControll = require('../controllers/user/walletControl');
 const WishlistControll = require ('../controllers/user/WishlistControl');
-const isAuthenticated = require('../Middlewares/Authention');
 
 
 
-router.get('/', userController.lodeHomePage);
+
+router.get('/', userController.loadHomePage);
 router.get('/logout',userController.logOut);
 
 // User login controllers
@@ -89,7 +89,7 @@ router.post('/cancelOrder',userAuthentication, orderListController.cancelOrder);
 
 
 // user wallet
-router.get('/wallet',walletControll.loadWallet);
+router.get('/wallet',userAuthentication,walletControll.loadWallet);
 
 // check out
 router.get('/checkout',userAuthentication,checkoutController.loadCheckout);

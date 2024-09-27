@@ -2,19 +2,35 @@ const Order = require('../../models/ordersModel');
 const Product =require('../../models/productsModel');
 
 
-
-const loadOrderList = async (req,res)=>{
+const loadOrderList = async (req, res) => {
     try {
-
-        const userId = req.session.user.id;
-        const orders = await Order.find({ userId: userId }).sort({ orderDate: -1 }).populate('products.productId', 'name');
-        console.log("my log",orders[0].products)
-        res.render('orderList', { orders });
+      const userId = req.session.user.id;
+  
+      // Fetch orders for the user, sorted by order date
+      const orders = await Order.find({ userId: userId })
+        .sort({ orderDate: -1 })
+        .populate('products.productId', 'name');
+  
+      // Check if orders exist
+      if (!orders || orders.length === 0) {
+        return res.render('orderList', { orders: [], message: 'No orders found.' });
+      }
+  
+      // Optional: Log the products of the first order for debugging
+      if (orders[0] && orders[0].products) {
+        console.log("First order products:", orders[0].products);
+      } else {
+        console.log("First order has no products.");
+      }
+  
+      // Render the order list
+      res.render('orderList', { orders });
     } catch (error) {
-        console.log(error);
-        
+      console.error(error);
+      res.status(500).send('An error occurred while loading the order list.');
     }
-};
+  };
+  
 
 
 const returnOrder = async (req, res) => {

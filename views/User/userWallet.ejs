@@ -301,13 +301,11 @@
 <body>
     <div class="colorlib-loader"></div>
     <div id="page">
-        
-
         <div class="breadcrumbs">
             <div class="container">
                 <div class="row">
                     <div class="col">
-                        <p class="bread"><span><a href="/">Home</a></span>  / <span>Wallet</span></p>
+                        <p class="bread"><span><a href="/">Home</a></span> / <span>Wallet</span></p>
                     </div>
                 </div>
                 <div class="row">
@@ -323,26 +321,30 @@
                 <div class="col-md-3 sidebar">
                     <ul class="list-unstyled">
                         <li><a href="/profile">Account Details</a></li>
-                    <li><a href="/orderList">Orders</a></li>
-                    <li><a href="/wallet">Wallet</a></li>
-                    <li><a href="#">Downloads</a></li>
-                    <li><a href="/address">Addresses</a></li>
-                    <li><a href="/logout">Sign Out</a></li>
+                        <li><a href="/orderList">Orders</a></li>
+                        <li><a href="/wallet">Wallet</a></li>
+                        <li><a href="#">Downloads</a></li>
+                        <li><a href="/address">Addresses</a></li>
+                        <li><a href="/logout">Sign Out</a></li>
                     </ul>
                 </div>
                 <div class="col-md-9 wallet-section">
+                    <!-- Wallet Balance Section -->
                     <div class="card shadow-sm mb-4 border-0 balance-card">
                         <div class="card-body p-4">
                             <h4 class="card-title mb-4">Wallet</h4>
                             <div class="row">
                                 <div class="col-md-6">
                                     <p class="mb-2">Current Balance</p>
-                                    <span id="walletBalance">RS: 5000</span>
+                                    <span id="walletBalance">
+                                        RS: <%= wallet ? wallet.balance : '0' %>
+                                    </span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
+                    <!-- Transaction History Section -->
                     <div class="card shadow-sm mb-4 border-0">
                         <div class="card-body p-4">
                             <h4 class="card-title mb-4">Transaction History</h4>
@@ -357,26 +359,29 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <td>2024-09-01</td>
-                                            <td>Payment for Order #123</td>
-                                            <td><span class="transaction-type debit">Debit</span></td>
-                                            <td>RS: 1000</td>
-                                        </tr>
-                                        <tr>
-                                            <td>2024-08-28</td>
-                                            <td>Refund for Order #122</td>
-                                            <td><span class="transaction-type credit">Credit</span></td>
-                                            <td>RS: 500</td>
-                                        </tr>
-                                        <!-- Add more rows as needed -->
+                                        <% if (wallet && wallet.transactions.length > 0) { %>
+                                            <% wallet.transactions.forEach(transaction => { %>
+                                                <tr>
+                                                    <td><%= new Date(transaction.date).toISOString().slice(0, 10) %></td>
+                                                    <td><%= transaction.description %></td>
+                                                    <td>
+                                                        <span class="transaction-type <%= transaction.type.toLowerCase() %>">
+                                                            <%= transaction.type %>
+                                                        </span>
+                                                    </td>
+                                                    <td>RS: <%= transaction.amount %></td>
+                                                </tr>
+                                            <% }); %>
+                                        <% } else { %>
+                                            <tr>
+                                                <td colspan="4">No transactions found</td>
+                                            </tr>
+                                        <% } %>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
-
-                   
                 </div>
             </div>
         </div>

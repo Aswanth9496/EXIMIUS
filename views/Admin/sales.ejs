@@ -1,5 +1,6 @@
 <%- include('../Layout/admin/headder.ejs') -%>
 
+
 <style>
   .chart-container {
     height: 300px;
@@ -46,6 +47,8 @@
     margin-bottom: 20px;
   }
 </style>
+
+
 
 <div class="container-scroller">
   <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
@@ -115,6 +118,14 @@
         </div>
       </div>
       <div class="filter-export-container">
+        <div class="date-filter">
+          <select id="dateRangeSelect" class="form-control" onchange="filterSales()">
+              <option value="all">All Sales</option>
+              <option value="1w">Last 1 Week</option>
+              <option value="1m">Last 1 Month</option>
+              <option value="1y">Last 1 Year</option>
+          </select>
+      </div>
        
         <div class="btn-group export-dropdown">
           <button class="btn btn-primary dropdown-toggle" type="button" id="exportDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -150,40 +161,50 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <% salesData.forEach(sale => { %>
+                    <% if (salesData.length === 0) { %>
                       <tr>
-                        <td><%= sale.orderId %></td>
-                        <td><%= sale.address.addressName %></td>
-                        <td><%= new Date(sale.orderDate).toLocaleDateString() %></td>
-                        <td>RS: <%= sale.totalAmount.toFixed(2) %></td>
-                        <td><%= sale.paymentMethod %></td>
-                        <td><%= sale.paymentStatus %></td>
-                        <td><%= sale.products[0]?.status || 'N/A' %></td>
+                        <td colspan="7" class="text-center">No sales data available</td>
                       </tr>
-                    <% }) %>
+                    <% } else { %>
+                      <% salesData.forEach(sale => { %>
+                        <tr>
+                          <td><%= sale.orderId %></td>
+                          <td><%= sale.address.addressName %></td>
+                          <td><%= new Date(sale.orderDate).toLocaleDateString() %></td>
+                          <td>RS: <%= sale.totalAmount.toFixed(2) %></td>
+                          <td><%= sale.paymentMethod %></td>
+                          <td><%= sale.paymentStatus %></td>
+                          <td><%= sale.products[0]?.status || 'N/A' %></td>
+                        </tr>
+                      <% }) %>
+                    <% } %>
                   </tbody>
+                  
                 </table>
               </div>
 
               <nav aria-label="Sales report pagination">
                 <ul class="pagination justify-content-center">
-                  <% if (currentPage > 1) { %>
-                    <li class="page-item"><a class="page-link" href="?page=<%= currentPage - 1 %>&limit=<%= limit %>">Previous</a></li>
-                  <% } else { %>
-                    <li class="page-item disabled"><a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a></li>
-                  <% } %>
-
-                  <% for (let i = 1; i <= totalPages; i++) { %>
-                    <li class="page-item <%= i === currentPage ? 'active' : '' %>"><a class="page-link" href="?page=<%= i %>&limit=<%= limit %>"><%= i %></a></li>
-                  <% } %>
-
-                  <% if (currentPage < totalPages) { %>
-                    <li class="page-item"><a class="page-link" href="?page=<%= currentPage + 1 %>&limit=<%= limit %>">Next</a></li>
-                  <% } else { %>
-                    <li class="page-item disabled"><a class="page-link" href="#" tabindex="-1" aria-disabled="true">Next</a></li>
-                  <% } %>
+                    <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                        <a class="page-link" href="?page=1&limit=<%= limit %>">First</a>
+                    </li>
+                    <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
+                        <a class="page-link" href="?page=<%= currentPage - 1 %>&limit=<%= limit %>">Previous</a>
+                    </li>
+                    <% for (let i = 1; i <= totalPages; i++) { %>
+                        <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                            <a class="page-link" href="?page=<%= i %>&limit=<%= limit %>"><%= i %></a>
+                        </li>
+                    <% } %>
+                    <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                        <a class="page-link" href="?page=<%= currentPage + 1 %>&limit=<%= limit %>">Next</a>
+                    </li>
+                    <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
+                        <a class="page-link" href="?page=<%= totalPages %>&limit=<%= limit %>">Last</a>
+                    </li>
                 </ul>
-              </nav>
+            </nav>
+            
             </div>
           </div>
         </div>
@@ -192,6 +213,111 @@
   </div>
 </div>
 
+
+<script>
+  $(document).ready(function() {
+      $('#dateRangeSelect').on('change', function() {
+          const selectedRange = $(this).val();
+          fetchSalesData(selectedRange);
+      });
+      
+      function fetchSalesData(dateRange) {
+          $.ajax({
+              url: '/admin/salesfilter',
+              method: 'GET',
+              data: { dateRange },
+              success: function(data) {
+                  updateSalesTable(data.salesData);
+                  updateSalesSummary(data.totalOrders, data.totalDiscount, data.totalSalesAmount);
+              },
+              error: function(err) {
+                  console.error('Error fetching sales data:', err);
+              }
+          });
+      }
+  
+      function updateSalesTable(salesData) {
+          const tbody = $('table tbody');
+          tbody.empty();
+          if (salesData.length === 0) {
+              tbody.append('<tr><td colspan="7" class="text-center">No sales data available</td></tr>');
+          } else {
+              salesData.forEach(sale => {
+                  tbody.append(`
+                      <tr>
+                          <td>${sale.orderId}</td>
+                          <td>${sale.address.addressName}</td>
+                          <td>${new Date(sale.orderDate).toLocaleDateString()}</td>
+                          <td>RS: ${sale.totalAmount.toFixed(2)}</td>
+                          <td>${sale.paymentMethod}</td>
+                          <td>${sale.paymentStatus}</td>
+                          <td>${sale.products[0]?.status || 'N/A'}</td>
+                      </tr>
+                  `);
+              });
+          }
+      }
+  
+      function updateSalesSummary(totalOrders, totalDiscount, totalSalesAmount) {
+          $('.total-orders').text(totalOrders);
+          $('.total-discount').text(`RS: ${totalDiscount.toFixed(2)}`);
+          $('.total-sales-amount').text(`RS: ${totalSalesAmount.toFixed(2)}`);
+      }
+  });
+  </script>
+
+  
+  
+  <script>
+    function filterSales() {
+        const selectedRange = document.getElementById('dateRangeSelect').value;
+
+        // Make an AJAX call to your backend to fetch filtered sales data
+        $.ajax({
+            url: '/admin/salesfilter',  // Update this URL to your endpoint for fetching sales data
+            method: 'GET',
+            data: { dateRange: selectedRange },
+            success: function(response) {
+                // Assuming response contains new sales data and relevant variables
+                // Update the table and other elements accordingly
+                const salesData = response.salesData;  // Update based on your response structure
+                const totalOrders = response.totalOrders;  // Update based on your response structure
+                const totalDiscount = response.totalDiscount;  // Update based on your response structure
+                const totalSalesAmount = response.totalSalesAmount;  // Update based on your response structure
+
+                // Update the sales data table
+                const tbody = $('table tbody');
+                tbody.empty(); // Clear existing rows
+
+                if (salesData.length === 0) {
+                    tbody.append('<tr><td colspan="7" class="text-center">No sales data available</td></tr>');
+                } else {
+                    salesData.forEach(sale => {
+                        tbody.append(`
+                            <tr>
+                                <td>${sale.orderId}</td>
+                                <td>${sale.address.addressName}</td>
+                                <td>${new Date(sale.orderDate).toLocaleDateString()}</td>
+                                <td>RS: ${sale.totalAmount.toFixed(2)}</td>
+                                <td>${sale.paymentMethod}</td>
+                                <td>${sale.paymentStatus}</td>
+                                <td>${sale.products[0]?.status || 'N/A'}</td>
+                            </tr>
+                        `);
+                    });
+                }
+
+                // Update summary cards
+                $('.total-orders').text(totalOrders);
+                $('.total-discount').text(`RS: ${totalDiscount.toFixed(2)}`);
+                $('.total-sales-amount').text(`RS: ${totalSalesAmount.toFixed(2)}`);
+            },
+            error: function(error) {
+                console.error("Error fetching sales data:", error);
+            }
+        });
+    }
+</script>
 
 
 <!-- Include jQuery first (if not already included) -->
