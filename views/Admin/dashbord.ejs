@@ -1,16 +1,54 @@
 <%- include('../Layout/admin/headder.ejs') -%>
 
 <body>
+
+
+  <style>
+    .sidebar {
+      width: 250px; /* Fixed width for sidebar */
+      position: fixed; /* Keep sidebar in place */
+      height: 100vh; /* Full height */
+      top: 60px; /* Navbar height */
+      left: 0;
+      overflow-y: auto; /* Enable scrolling */
+      background-color: #f8f9fa; /* Background color */
+    }
+  
+    .main-content {
+      margin-left: 250px; /* Leave space for sidebar */
+      padding: 20px; /* Padding for main content */
+      padding-top: 60px; /* Adjust for navbar */
+      display: flex; /* Use flexbox for layout */
+      flex-direction: column; /* Column layout */
+      height: calc(100vh - 60px); /* Full height minus navbar */
+      width: calc(100vw - 250px); /* Full width minus sidebar width */
+    }
+  
+    .container-fluid {
+      padding-top: 20px; /* Additional spacing */
+      flex-grow: 1; /* Allow container to grow */
+    }
+  
+    .card {
+      flex-grow: 1; /* Expand card to fill space */
+      width: 100%; /* Ensure card takes full width */
+    }
+  
+    .chart-container {
+      height: 100%; /* Full height for chart */
+    }
+  </style>
+  
+
+
+<body>
   <div class="container-scroller">
-    <!-- partial:partials/_navbar.html -->
     <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
       <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
         <a class="navbar-brand brand-logo" href="index.html"><img src="images/logo.svg" alt="logo"/></a>
         <a class="navbar-brand brand-logo-mini" href="index.html"><img src="images/logo-mini.svg" alt="logo"/></a>
       </div>
       <div class="navbar-menu-wrapper d-flex align-items-stretch">
-        <div class="search-field ml-4 d-none d-md-block">
-        </div>
         <ul class="navbar-nav navbar-nav-right">
           <li class="nav-item d-none d-lg-block full-screen-link">
             <a class="nav-link">
@@ -20,254 +58,160 @@
         </ul>
       </div>
     </nav>
-    <!-- partial -->
+
     <div class="container-fluid page-body-wrapper">
-      <div class="row row-offcanvas row-offcanvas-right">
-        <!-- partial:partials/_sidebar.html -->
-        <nav class="sidebar sidebar-offcanvas" id="sidebar">
-          <ul class="nav">
-            <li class="nav-item">
-              <a class="nav-link" href="/admin/">
-                <span class="menu-title">Dashboard</span>
-                <i class="mdi mdi-home menu-icon"></i>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/admin/Product">
-                <span class="menu-title">Product</span>
-                <i class="mdi mdi-cube-outline menu-icon"></i>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/admin/Users">
-                <span class="menu-title">Users</span>
-                <i class="mdi mdi-account menu-icon"></i>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/admin/Orders">
-                <span class="menu-title">Orders</span>
-                <i class="mdi mdi-cart menu-icon"></i>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/admin/Sales">
-                <span class="menu-title">Sales</span>
-                <i class="mdi mdi-home menu-icon"></i>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/admin/Coupon">
-                <span class="menu-title">Coupon</span>
-                <i class="mdi mdi-ticket-percent menu-icon"></i>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/admin/offers">
-                <span class="menu-title">Offers</span>
-                <i class="mdi mdi-image menu-icon"></i>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/admin/Category">
-                <span class="menu-title">Categories</span>
-                <i class="mdi mdi-shape-outline menu-icon"></i>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/admin/Brands">
-                <span class="menu-title">Brands</span>
-                <i class="mdi mdi-tag-multiple menu-icon"></i>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/admin/Logout">
-                <span class="menu-title">Logout</span>
-                <i class="mdi mdi-logout menu-icon"></i>
-              </a>
-            </li>
-          </ul>
-        </nav>
-        <!-- partial -->
-        <div class="content-wrapper">
-          <div class="row purchace-popup">
-            <div class="col-12">
+      <nav class="sidebar sidebar-offcanvas" id="sidebar">
+        <ul class="nav">
+          <li class="nav-item"><a class="nav-link" href="/admin/"><span class="menu-title">Dashboard</span><i class="mdi mdi-home menu-icon"></i></a></li>
+          <li class="nav-item"><a class="nav-link" href="/admin/Product"><span class="menu-title">Product</span><i class="mdi mdi-cube-outline menu-icon"></i></a></li>
+          <li class="nav-item"><a class="nav-link" href="/admin/Users"><span class="menu-title">Users</span><i class="mdi mdi-account menu-icon"></i></a></li>
+          <li class="nav-item"><a class="nav-link" href="/admin/Orders"><span class="menu-title">Orders</span><i class="mdi mdi-cart menu-icon"></i></a></li>
+          <li class="nav-item"><a class="nav-link" href="/admin/Sales"><span class="menu-title">Sales</span><i class="mdi mdi-home menu-icon"></i></a></li>
+          <li class="nav-item"><a class="nav-link" href="/admin/Coupon"><span class="menu-title">Coupon</span><i class="mdi mdi-ticket-percent menu-icon"></i></a></li>
+          <li class="nav-item"><a class="nav-link" href="/admin/offers"><span class="menu-title">Offers</span><i class="mdi mdi-image menu-icon"></i></a></li>
+          <li class="nav-item"><a class="nav-link" href="/admin/Category"><span class="menu-title">Categories</span><i class="mdi mdi-shape-outline menu-icon"></i></a></li>
+          <li class="nav-item"><a class="nav-link" href="/admin/Brands"><span class="menu-title">Brands</span><i class="mdi mdi-tag-multiple menu-icon"></i></a></li>
+          <li class="nav-item"><a class="nav-link" href="/admin/Logout"><span class="menu-title">Logout</span><i class="mdi mdi-logout menu-icon"></i></a></li>
+        </ul>
+      </nav>
+
+      <!-- Adjusting the column size to increase the width -->
+<div class="main-content d-flex flex-column">
+  <div class="container-fluid py-4 flex-grow-1 d-flex align-items-stretch">
+    <div class="row justify-content-center w-100">
+      <div class="col-lg-12 col-md-12"> <!-- Change this to col-lg-12 to use full width -->
+        <div class="card mb-4 flex-grow-1">
+          <div class="card-header pb-0 d-flex justify-content-between align-items-center">
+            <h6>Dashboard Overview</h6>
+            <div class="form-group mb-0">
+              <label for="timeFrame" class="mr-2">Time Frame:</label>
+              <select id="timeFrame" class="form-select form-select-sm" onchange="updateDashboard()">
+                <option value="yearly" <%= timeFrame === 'yearly' ? 'selected' : '' %>>Yearly</option>
+                <option value="monthly" <%= timeFrame === 'monthly' ? 'selected' : '' %>>Monthly</option>
+                <option value="weekly" <%= timeFrame === 'weekly' ? 'selected' : '' %>>Weekly</option>
+                <option value="daily" <%= timeFrame === 'daily' ? 'selected' : '' %>>Daily</option>
+              </select>
             </div>
           </div>
-          <div class="row">
-            <div class="col-md-4 stretch-card grid-margin">
-              <div class="card bg-gradient-warning text-white">
-                <div class="card-body">
-                  <h4 class="font-weight-normal mb-3">Weekly Sales</h4>
-                  <h2 class="font-weight-normal mb-5">$ 15,00000.00</h2>
-                  <p class="card-text">Incresed by 60%</p>
+          <div class="card-body d-flex flex-grow-1">
+            <div class="row flex-grow-1">
+              <div class="col-md-6 mb-4 flex-grow-1">
+                <div class="chart-container h-100">
+                  <canvas id="orderStatusChart"></canvas>
                 </div>
               </div>
-            </div>
-            <div class="col-md-4 stretch-card grid-margin">
-              <div class="card bg-gradient-info text-white">
-                <div class="card-body">
-                  <h4 class="font-weight-normal mb-3">Weekly Orders</h4>
-                  <h2 class="font-weight-normal mb-5">45633456</h2>
-                  <p class="card-text">Decreased by 10%</p>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-4 stretch-card grid-margin">
-              <div class="card bg-gradient-success text-white">
-                <div class="card-body">
-                  <h4 class="font-weight-normal mb-3">Visitors Online</h4>
-                  <h2 class="font-weight-normal mb-5">955741235</h2>
-                  <p class="card-text">Increased by 5%</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="row">
-            <div class="col-12 grid-margin">
-              <div class="card">
-                <div class="card-body">
-                  <h4 class="card-title">Recent Tickets</h4>
-                  <div class="table-responsive">
-                    <table class="table">
-                      <thead>
-                        <tr>
-                          <th>
-                            Ticket No.
-                          </th>
-                          <th>
-                            Subject
-                          </th>
-                          <th>
-                            Assignee
-                          </th>
-                          <th>
-                            Status
-                          </th>
-                          <th>
-                            Last Update
-                          </th>
-                          <th>
-                            Tracking ID
-                          </th>
-                          <th>
-                            Priority
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>
-                            5669
-                          </td>
-                          <td>
-                            Fund is not recieved
-                          </td>
-                          <td class="py-1">
-                            <img src="images/faces/face1.jpg" class="mr-2" alt="image">
-                            David Grey
-                          </td>
-                          <td>
-                            <label class="badge badge-gradient-success">DONE</label>
-                          </td>
-                          <td>
-                            Dec 5, 2017
-                          </td>
-                          <td>
-                            WD-12345
-                          </td>
-                          <td>
-                            <i class="mdi mdi-arrow-up text-danger icon-sm mr-1"></i>High
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            5670
-                          </td>
-                          <td>
-                            High loading time
-                          </td>
-                          <td class="py-1">
-                            <img src="images/faces/face2.jpg" class="mr-2" alt="image">
-                            Stella Johnson
-                          </td>
-                          <td>
-                            <label class="badge badge-gradient-warning">PROGRESS</label>
-                          </td>
-                          <td>
-                            Dec 12, 2017
-                          </td>
-                          <td>
-                            WD-12346
-                          </td>
-                          <td>
-                            <i class="mdi mdi-arrow-up text-danger icon-sm mr-1"></i>High
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            5671
-                          </td>
-                          <td>
-                            Website down for one week
-                          </td>
-                          <td class="py-1">
-                            <img src="images/faces/face3.jpg" class="mr-2" alt="image">
-                            Marina Michel
-                          </td>
-                          <td>
-                            <label class="badge badge-gradient-secondary">ON HOLD</label>
-                          </td>
-                          <td>
-                            Dec 16, 2017
-                          </td>
-                          <td>
-                            WD-12347
-                          </td>
-                          <td>
-                            <i class="mdi mdi-arrow-up text-success icon-sm mr-1"></i>Low
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            5672
-                          </td>
-                          <td>
-                            Loosing control on server
-                          </td>
-                          <td class="py-1">
-                            <img src="images/faces/face4.jpg" class="mr-2" alt="image">
-                            John Doe
-                          </td>
-                          <td>
-                            <label class="badge badge-gradient-success">DONE</label>
-                          </td>
-                          <td>
-                            Dec 3, 2017
-                          </td>
-                          <td>
-                            WD-12348
-                          </td>
-                          <td>
-                            <i class="mdi mdi-arrow-up text-warning icon-sm mr-1"></i>Medium
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+              <div class="col-md-6 mb-4 flex-grow-1">
+                <div class="chart-container h-100">
+                  <canvas id="salesChart"></canvas>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <!-- content-wrapper ends -->
-        <!-- partial:partials/_footer.html -->
-        <!-- partial -->
       </div>
-      <!-- row-offcanvas ends -->
     </div>
-    <!-- page-body-wrapper ends -->
   </div>
-  <!-- container-scroller -->
-<%- include('../Layout/admin/footer.ejs') -%>
+</div> <!-- End of main content -->
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      <script>
+          // Data initialization and chart generation for order status
+          let orderStatusData = JSON.parse(`<%- JSON.stringify(orderStatusData) %>`);
+          let salesData = JSON.parse(`<%- JSON.stringify(salesData) %>`);
+
+          function generateOrderStatusChart() {
+              const ctx = document.getElementById('orderStatusChart').getContext('2d');
+              const orderStatusLabels = orderStatusData.map(order => order.status);
+              const orderStatusCounts = orderStatusData.map(order => order.count);
+
+              new Chart(ctx, {
+                  type: 'pie',
+                  data: {
+                      labels: orderStatusLabels,
+                      datasets: [{
+                          label: 'Order Status',
+                          data: orderStatusCounts,
+                          backgroundColor: ['rgba(255, 99, 132, 0.7)', 'rgba(54, 162, 235, 0.7)', 'rgba(255, 206, 86, 0.7)'],
+                          borderWidth: 1,
+                      }],
+                  },
+                  options: {
+                      responsive: true,
+                      plugins: {
+                          legend: { position: 'top' },
+                          tooltip: {
+                              callbacks: {
+                                  label: function(context) {
+                                      return `${context.label}: ${context.raw}`;
+                                  }
+                              }
+                          }
+                      }
+                  }
+              });
+          }
+
+          // Data initialization and chart generation for sales
+          function generateSalesChart() {
+              const ctx = document.getElementById('salesChart').getContext('2d');
+              const salesLabels = salesData.map(sale => sale.date);
+              const salesAmounts = salesData.map(sale => sale.total);
+
+              new Chart(ctx, {
+                  type: 'line',
+                  data: {
+                      labels: salesLabels,
+                      datasets: [{
+                          label: 'Sales',
+                          data: salesAmounts,
+                          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                          borderColor: 'rgba(75, 192, 192, 1)',
+                          borderWidth: 2,
+                      }],
+                  },
+                  options: {
+                      responsive: true,
+                      scales: {
+                          y: { beginAtZero: true },
+                          x: { display: true }
+                      },
+                      plugins: {
+                          legend: { position: 'top' },
+                          tooltip: {
+                              callbacks: {
+                                  label: function(context) {
+                                      return `Sales: ${context.raw}`;
+                                  }
+                              }
+                          }
+                      }
+                  }
+              });
+          }
+
+          // Function to update dashboard based on selected timeframe
+          async function updateDashboard() {
+              const timeFrame = document.getElementById('timeFrame').value;
+
+              const response = await fetch(`/dashboard/update?timeFrame=${timeFrame}`);
+              const data = await response.json();
+
+              orderStatusData = data.orderStatus;
+              salesData = data.salesData;
+
+              generateOrderStatusChart();
+              generateSalesChart();
+          }
+
+          document.addEventListener('DOMContentLoaded', () => {
+              generateOrderStatusChart();
+              generateSalesChart();
+          });
+      </script>
+
+      <%- include('../Layout/admin/footer.ejs') -%>
+    </div>
+  </div>
+</body>

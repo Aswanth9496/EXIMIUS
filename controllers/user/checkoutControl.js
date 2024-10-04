@@ -94,7 +94,8 @@ const deleteAddress = async (req, res) => {
 
 
 
-// cash on delevery 
+
+
 const placeOrder = async (req, res) => {
     const { addressId, paymentMethod, couponCode } = req.body;
     const userId = req.session.user.id;
@@ -118,7 +119,7 @@ const placeOrder = async (req, res) => {
 
         for (const item of cart.products) {
             const price = item.product.offerPrice || item.product.price;
-            const totalPrice = price * item.quantity;
+            const totalPrice = Math.round(price * item.quantity * 100) / 100; // Round to two decimal places
             totalAmount += totalPrice;
 
             // Check if the product has enough stock
@@ -130,7 +131,7 @@ const placeOrder = async (req, res) => {
                 productId: item.product._id,
                 quantity: item.quantity,
                 price: price,
-                totalPrice,
+                totalPrice: totalPrice,
                 status: 'Pending'
             });
         }
@@ -139,7 +140,7 @@ const placeOrder = async (req, res) => {
         if (couponCode) {
             const coupon = await Coupon.findOne({ code: couponCode, status: true });
             if (coupon) {
-                totalDiscount = (totalAmount * coupon.discount) / 100;
+                totalDiscount = Math.round((totalAmount * coupon.discount) / 100 * 100) / 100; // Round the discount
                 if (coupon.maxDiscountAmount > 0) {
                     totalDiscount = Math.min(totalDiscount, coupon.maxDiscountAmount);
                 }
@@ -152,24 +153,27 @@ const placeOrder = async (req, res) => {
         let totalDiscountDistributed = 0;
         products.forEach((product, index) => {
             const productShare = product.totalPrice / totalAmount; // The percentage share of the product
-            let productDiscount = totalDiscount * productShare;
-            productDiscount = Math.round(productDiscount * 100) / 100; // Round to two decimal places
+            let productDiscount = Math.round(totalDiscount * productShare * 100) / 100; // Round the discount for this product
 
             // Apply discount to each product
             product.totalPrice -= productDiscount;
+
+            // Ensure product totalPrice is rounded
+            product.totalPrice = Math.round(product.totalPrice * 100) / 100;
 
             // Keep track of the total discount applied so far
             totalDiscountDistributed += productDiscount;
 
             // For the last product, adjust the rounding difference (to ensure exact total)
             if (index === products.length - 1) {
-                const roundingDifference = totalDiscount - totalDiscountDistributed;
+                const roundingDifference = Math.round((totalDiscount - totalDiscountDistributed) * 100) / 100;
                 product.totalPrice -= roundingDifference; // Ensure exact total
             }
         });
 
         // Adjust the total amount after the distributed discount
         totalAmount -= totalDiscount;
+        totalAmount = Math.round(totalAmount * 100) / 100; // Round totalAmount
 
         // Generate a unique orderId (you can use a better generator or UUID here)
         const orderId = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
@@ -184,7 +188,7 @@ const placeOrder = async (req, res) => {
             products,
             totalAmount,
             orderDate: new Date(),
-            discountAmount:totalDiscount
+            discountAmount: totalDiscount
         });
 
         // Save the order to the database
@@ -324,14 +328,22 @@ const placeOrderAfterPayment = async (req, res) => {
     const userId = req.session.user.id;
 
     try {
-        // Step 1: Verify the Razorpay payment signature
-        const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET);
-        hmac.update(`${razorpay_order_id}|${razorpay_payment_id}`);
-        const generatedSignature = hmac.digest('hex');
 
-        if (generatedSignature !== razorpay_signature) {
-            return res.status(400).json({ success: false, message: 'Payment verification failed' });
-        }
+         // Step 1: Verify the Razorpay payment signature
+         const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET);
+         hmac.update(`${razorpay_order_id}|${razorpay_payment_id}`);
+         const generatedSignature = hmac.digest('hex');
+ 
+         let paymentStatus = 'Pending'; // Default to pending
+ 
+         if (generatedSignature === razorpay_signature) {
+             paymentStatus = 'Success';  // Payment is successful
+         } else {
+             // Log the failure for further debugging, but still create the order
+             console.warn('Payment verification failed, placing order with pending status.');
+         }
+
+
 
         // Step 2: Fetch the address by its ID
         const address = await Address.findById(addressId);
@@ -442,6 +454,109 @@ const placeOrderAfterPayment = async (req, res) => {
 
 
 
+const placeOrderFailed = async (req, res) => {
+    
+    let { addressId, couponCode, totalAmount: rawTotalAmount } = req.body; 
+    const userId = req.session.user.id;
+
+    try {
+        const address = await Address.findById(addressId);
+        if (!address) {
+            return res.status(400).json({ success: false, message: 'Address not found' });
+        }
+
+        const cart = await Cart.findOne({ user: userId }).populate('products.product');
+        if (!cart || cart.products.length === 0) {
+            return res.status(400).json({ success: false, message: 'Cart is empty' });
+        }
+
+        const products = [];
+        let totalProductAmount = 0; // Total amount of all products (before discount)
+        let totalDiscount = 0; // Total discount applied
+
+        for (const item of cart.products) {
+            const price = item.product.offerPrice || item.product.price;
+            const totalPrice = price * item.quantity;
+
+            if (item.product.stock < item.quantity) {
+                return res.status(400).json({ success: false, message: `Not enough stock for ${item.product.name}` });
+            }
+
+            totalProductAmount += totalPrice;
+
+            products.push({
+                productId: item.product._id,
+                quantity: item.quantity,
+                price: price,
+                totalPrice,
+                status: 'Pending'
+            });
+        }
+
+        // Apply coupon logic
+        if (couponCode) {
+            const coupon = await Coupon.findOne({ code: couponCode, status: true });
+            if (coupon) {
+                totalDiscount = (totalProductAmount * coupon.discount) / 100;
+                if (coupon.maxDiscountAmount > 0) {
+                    totalDiscount = Math.min(totalDiscount, coupon.maxDiscountAmount);
+                }
+
+                // Calculate the final total amount after applying the discount
+                rawTotalAmount = totalProductAmount - totalDiscount;
+            }
+        }
+
+        // Ensure totalAmount is a number
+        let totalAmount = parseFloat(rawTotalAmount.toString().replace(/[₹,]/g, '').trim());
+
+        // Distribute discount proportionally among the products
+        if (totalDiscount > 0) {
+            let totalDiscountDistributed = 0;
+            products.forEach((product, index) => {
+                const productShare = product.totalPrice / totalProductAmount;  // Percentage share of the product
+                let productDiscount = totalDiscount * productShare;  // Calculate product's share of the discount
+                productDiscount = Math.round(productDiscount * 100) / 100;  // Round to two decimal places
+
+                // Apply discount to the product totalPrice
+                product.totalPrice -= productDiscount;
+
+                // Track total discount distributed
+                totalDiscountDistributed += productDiscount;
+
+                // Adjust the last product's totalPrice to account for rounding difference
+                if (index === products.length - 1) {
+                    const roundingDifference = totalDiscount - totalDiscountDistributed;
+                    product.totalPrice -= roundingDifference;  // Ensure exact total discount
+                }
+            });
+        }
+
+        const orderId = `ORD-${Date.now()}`;
+
+        const newOrder = new Order({
+            userId,
+            orderId,
+            paymentMethod: 'razorpay',
+            paymentStatus: 'Pending',
+            address,
+            products,
+            totalAmount,  // Use the cleaned total amount after discount
+            orderDate: new Date(),
+            discountAmount: totalDiscount  // Track the applied discount
+        });
+
+        await newOrder.save();
+        await Cart.updateOne({ user: userId }, { $set: { products: [] } });
+        req.session.orderId = newOrder.orderId;
+
+        res.json({ success: true, orderId: newOrder.orderId });
+    } catch (error) {
+        console.error('Error while placing order after payment failure:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+};
+
 
 // order details
 const orderDetails = async (req,res)=>{
@@ -477,6 +592,75 @@ const orderDetails = async (req,res)=>{
     }
 
 };
+
+
+
+
+const retryPayment = async (req, res) => {
+    const { orderId } = req.body;
+    const userId = req.session.user.id;
+
+    try {
+        // Find the failed order
+        const order = await Order.findOne({orderId});
+        if (!order) {
+            throw new Error('Order not found or does not belong to this user.');
+        }
+
+        if (order.paymentStatus !== 'Pending') {
+            return res.status(400).json({ message: 'Cannot retry payment for this order.' });
+        }
+
+        // Create a new Razorpay order for retrying payment
+        const options = {
+            amount: order.totalAmount * 100,  // amount in paisa
+            currency: 'INR',
+            receipt: order.orderId,
+            payment_capture: 1
+        };
+
+        const razorpayOrder = await razorpay.orders.create(options);
+
+        // Send the Razorpay order ID and other details to the frontend
+
+        res.json({
+            razorpayOrderId: razorpayOrder.id,
+            totalAmount: order.totalAmount,
+            keyId: process.env.RAZORPAY_KEY_ID,
+            orderId: order.orderId,
+            success:true
+        });
+
+    } catch (error) {
+        console.error('Error during payment retry:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+
+
+
+const verifyRetryPayment = async (req, res) => {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = req.body;
+
+    try {
+        const hmac = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET);
+        hmac.update(`${razorpay_order_id}|${razorpay_payment_id}`);
+        const generatedSignature = hmac.digest('hex');
+
+        if (generatedSignature === razorpay_signature) {
+            // Update order status to Success
+            await Order.updateOne({ orderId }, { $set: { paymentStatus: 'Success' } });
+            res.json({ success: true, message: 'Payment verified successfully!' });
+        } else {
+            res.status(400).json({ success: false, message: 'Payment verification failed.' });
+        }
+    } catch (error) {
+        console.error('Error verifying payment:', error);
+        res.status(500).json({ success: false, message: 'Server error during payment verification.' });
+    }
+};
+
 
 
 
@@ -544,6 +728,10 @@ const applyCoupon = async (req, res) => {
 
 
 
+
+
+
+
 module.exports ={
     loadCheckout,
     addAddress,
@@ -552,5 +740,8 @@ module.exports ={
     orderDetails,
     razorpayCheckout,
     applyCoupon,
-    placeOrderAfterPayment
+    placeOrderAfterPayment,
+    placeOrderFailed,
+    retryPayment,
+    verifyRetryPayment
 };

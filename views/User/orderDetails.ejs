@@ -47,7 +47,10 @@
                                     <li class="mb-2"><span class="text-muted">Order ID:</span> <strong>#<%=order.orderId%></strong></li>
                                     <li class="mb-2"><span class="text-muted">Order Date:</span> <strong><%=order.orderDate.toISOString().split('T')[0]%></strong></li>
                                     <li class="mb-2"><span class="text-muted">Payment Method:</span> <strong><%=order.paymentMethod%></strong></li>
+                                    <li class="mb-2"><span class="text-muted">Payment Status:</span> <strong><%= order.paymentStatus %></strong></li>
+                                     
                                 </ul>
+                                
                             </div>
                         </div>
                     </div>
@@ -60,60 +63,76 @@
                                 <thead class="thead-light">
                                     <tr>
                                         <th>Image</th>
-                                    <th>Product</th>
-                                    <th>Quantity</th>
-                                    <th>Actual Price</th>
-                                    <th>Offer Price</th>
-                                    <th>Total</th>
+                                        <th>Product</th>
+                                        <th>Quantity</th>
+                                        <th>Actual Price</th>
+                                        <th>Offer Price</th>
+                                        <th>Total</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                  <%order.products.forEach(an =>{%>
+                                    <% order.products.forEach(an => { %>
                                     <tr>
-                                        <td><img src="/productIMG/<%=an.productId.productimages[0]%>" alt="Product Image" class="img-thumbnail" style="width: 60px; height: 60px;"></td>
-                                        <td><%=an.productId.name%></td>
-                                        <td><%=an.quantity%></td>
-                                        <td>&#8377;<%=an.price%></td>
-                                        <td>&#8377;<%= an.quantity * an.price %></td>
+                                        <td><img src="/productIMG/<%= an.productId.productimages[0] %>" alt="Product Image" class="img-thumbnail" style="width: 60px; height: 60px;"></td>
+                                        <td><%= an.productId.name %></td>
+                                        <td><%= an.quantity %></td>
+                                        
+                                        <!-- Displaying the actual price -->
+                                        <td>&#8377;<%= an.productId.price %></td>
+                                        
+                                        <!-- Displaying the offer price if available, otherwise showing the actual price -->
+                                        <td>&#8377;<%= an.productId.offerPrice ? an.productId.offerPrice : an.productId.price %></td>
+                                        
+                                        <!-- Total based on the offer price or actual price -->
+                                        <td>&#8377;<%= an.quantity * (an.productId.offerPrice ? an.productId.offerPrice : an.productId.price) %></td>
                                     </tr>
-                                <%})%>
+                                    <% }) %>
                                 </tbody>
                                 <tfoot class="bg-light">
                                     <tr>
-                                        <td colspan="4" class="text-right"><strong>Subtotal:</strong></td>
+                                        <td colspan="5" class="text-right"><strong>Subtotal:</strong></td>
                                         <td>
                                             <strong>
-                                                &#8377;<%= order.products.reduce((acc, an) => acc + (an.price * an.quantity), 0) %>
+                                                <!-- Calculate the subtotal based on offer price or actual price -->
+                                                &#8377;<%= order.products.reduce((acc, an) => acc + (an.quantity * (an.productId.offerPrice ? an.productId.offerPrice : an.productId.price)), 0) %>
                                             </strong>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td colspan="4" class="text-right"><strong>Shipping:</strong></td>
+                                        <td colspan="5" class="text-right"><strong>GST (18%):</strong></td>
+                                        <td>
+                                            <strong>
+                                                <!-- Calculate GST on the subtotal -->
+                                                &#8377;<%= Math.round(order.products.reduce((acc, an) => acc + (an.quantity * (an.productId.offerPrice ? an.productId.offerPrice : an.productId.price)), 0) * 0.18) %>
+                                            </strong>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="5" class="text-right"><strong>Shipping:</strong></td>
                                         <td><strong>&#8377;0</strong></td>
                                     </tr>
-                                    <% if (order.discountAmoun!=0) { %>
+                                    <% if (order.discountAmount != 0) { %>
                                         <% if (order.discountAmount > 0) { %>
                                             <tr>
-                                                <td colspan="4" class="text-right"><strong>Discount:</strong></td>
+                                                <td colspan="5" class="text-right"><strong>Discount:</strong></td>
                                                 <td><strong>&#8377;<%= order.discountAmount %></strong></td>
                                             </tr>
                                         <% } %>
-                                        
-                                        <tr class="table-active">
-                                            <td colspan="4" class="text-right"><strong>Total Amount:</strong></td>
-                                            <td><strong>&#8377;<%= order.totalAmount %></strong></td>
-                                        </tr>
-                                    <% } else { %>
-                                        <tr class="table-active">
-                                            <td colspan="4" class="text-right"><strong>Total Amount:</strong></td>
-                                            <td><strong>&#8377;<%= order.totalAmount%></strong></td>
-                                        </tr>
                                     <% } %>
-                                    
+                                    <tr class="table-active">
+                                        <td colspan="5" class="text-right"><strong>Total Amount:</strong></td>
+                                        <td>
+                                            <strong>
+                                                &#8377;<%= order.totalAmount %>
+                                            </strong>
+                                        </td>
+                                    </tr>
                                 </tfoot>
                             </table>
+                            
                         </div>
                     </div>
+                    
                 </div>
 <!--------------- ejs content end here -----------------------------------------------------content end here------------------------------------------------------------------------------------------------>
             </div>

@@ -28,7 +28,7 @@ app.post('/login', adminController.verifyadmin);
 app.get('/logout',adminController.adminLogout);
 
 // load admin dashbord
-app.get('/dashbord',isAuthenticated,adminController.loadDashbord);
+app.get('/dashbord',isAuthenticated,adminController.loadDashboard);
 
 // for brand 
 app.get('/brands',isAuthenticated,brandControl.loadBrands);

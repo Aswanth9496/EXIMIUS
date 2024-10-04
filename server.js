@@ -6,8 +6,13 @@ const morgan = require('morgan');
 const session = require('express-session');
 const passport = require('passport');
 const flash = require('connect-flash');
+const nocache = require('nocache');
+
+
 
 const app = express();
+
+app.use(nocache());
 
 // Set 'public' as the static folder
 app.use(express.static(path.join(__dirname, './public/user')));

@@ -72,7 +72,7 @@ router.delete('/removeFromWishlist/:productId',userAuthentication,WishlistContro
 // profile
 router.get('/profile',userAuthentication,userProfileController.loadProfile);
 router.post('/changePassword',userAuthentication,userProfileController.updateUserPassword);
-router.get('/updateProfile',userAuthentication,userProfileController.updateProfile);
+router.post('/updateProfile',userAuthentication,userProfileController.updateProfile);
 
 //profile address
 router.get('/address',userAuthentication,userAddressController.loadAddress);
@@ -104,6 +104,9 @@ router.get('/orderConfirmation',userAuthentication,checkoutController.orderDetai
 router.post('/placeorder/:id',userAuthentication,checkoutController.placeOrder);
 
 router.post('/placeOrderAfterPayment',userAuthentication,checkoutController.placeOrderAfterPayment);
+router.post('/placeOrderFailed',userAuthentication,checkoutController.placeOrderFailed);
 router.get('/razorpayCheckout',userAuthentication,checkoutController.razorpayCheckout);
+router.post('/retrypayment',userAuthentication,checkoutController.retryPayment);
+router.post('/verifyRetryPayment',userAuthentication,checkoutController.verifyRetryPayment);
 
 module.exports = router;

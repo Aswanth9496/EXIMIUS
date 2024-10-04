@@ -10,7 +10,8 @@ const loadSales = async (req, res) => {
 
   try {
     const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 10;
+    const limit = parseInt(req.query.limit, 5) || 5;
+
 
     // Validate page and limit
     if (page < 1 || limit < 1 || limit > 100) { // Added upper limit for pagination
@@ -62,7 +63,7 @@ const loadSales = async (req, res) => {
 
 const filterSales = async (req, res) => {
   try {
-    console.log("Received request to filter sales:", req.query);
+   
 
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -81,15 +82,13 @@ const filterSales = async (req, res) => {
       return res.status(400).send('Invalid startDate');
     }
 
-    // Log the date range and start date determination
-    console.log('Date Range:', dateRange);
-    console.log('Start Date Param:', startDateParam);
+   
 
     let startDate;
     const endDate = new Date();
 
     // Determine startDate based on query or date range
-    if (startDateParam) {
+    if (startDateParam) { 
       startDate = startDateParam;
     } else {
       switch (dateRange) {
@@ -126,7 +125,7 @@ const filterSales = async (req, res) => {
       };
     }
 
-    console.log('MongoDB Query:', query);
+    
 
     const totalOrdersCount = await orders.countDocuments(query);
     const salesData = await orders.find(query).skip(skip).limit(limit);
@@ -143,7 +142,7 @@ const filterSales = async (req, res) => {
 
     const totalPages = Math.ceil(totalOrdersCount / limit);
 
-    res.render('sales', {
+    res.json( {
       totalOrders: totalOrdersCount,
       totalDiscount,
       totalSalesAmount,
@@ -160,19 +159,41 @@ const filterSales = async (req, res) => {
 
 
 
-
 const exportSalesToPDF = async (req, res) => {
   try {
-      const salesData = await orders.find({
-          $or: [
-              { paymentStatus: 'Success' },
-              { 'products.status': 'Delivered' }
-          ],
-          'products.status': { $nin: ['Cancelled', 'Returned'] }
-      }).lean();
+      // Simulating the retrieved sales data
+      const salesData = [
+          {
+              orderId: 'ORD-1727598990',
+              customerId: '607',
+              customerName: 'ayush',
+              orderDate: '29/9/2024',
+              totalAmount: 21000.00,
+              paymentMethod: 'razorpay',
+              paymentStatus: 'Success'
+          },
+          {
+              orderId: 'ORD-1727599035',
+              customerId: '071',
+              customerName: 'ayush',
+              orderDate: '29/9/2024',
+              totalAmount: 31000.00,
+              paymentMethod: 'razorpay',
+              paymentStatus: 'Success'
+          },
+          {
+              orderId: 'ORD-1727599421',
+              customerId: '251',
+              customerName: 'aswanth',
+              orderDate: '29/9/2024',
+              totalAmount: 70500.00,
+              paymentMethod: 'razorpay',
+              paymentStatus: 'Success'
+          }
+      ];
 
-      const doc = new PDFDocument();
-      let filename = 'Sales_Report.pdf';
+      const doc = new PDFDocument({ margin: 50 });
+      const filename = 'Sales_Report.pdf';
       res.setHeader('Content-disposition', `attachment; filename=${filename}`);
       res.setHeader('Content-type', 'application/pdf');
 
@@ -182,58 +203,74 @@ const exportSalesToPDF = async (req, res) => {
       doc.fontSize(25).text('Sales Report', { align: 'center' });
       doc.moveDown(2);
 
-      // Define the table headers
+      // Define table headers and column widths
       const tableHeaders = [
-          'Invoice No', 'Customer Name', 'Order Date', 
-          'Total Amount (RS)', 'Payment Method', 
-          'Payment Status', 'Order Status'
+          'Invoice No', 'Customer ID', 'Customer Name', 
+          'Order Date', 'Total Amount (RS)', 
+          'Payment Method', 'Payment Status'
       ];
-
-      const columnWidths = [100, 100, 100, 100, 100, 100, 100]; // Adjust column widths as needed
+      const columnWidths = [100, 80, 100, 80, 100, 100, 80]; // Adjusted widths
       const startX = 50; // Starting X position for the table
-      let startY = doc.y; // Starting Y position for the table
+      const startY = doc.y; // Starting Y position for the table
+      const rowHeight = 20; // Height of each row
 
       // Draw table headers
-      doc.fontSize(12).font('Helvetica-Bold');
+      doc.fontSize(12).font('Helvetica-Bold').fillColor('#4F81BD');
       tableHeaders.forEach((header, i) => {
-          doc.text(header, startX + columnWidths.slice(0, i).reduce((a, b) => a + b, 0), startY, {
+          doc.rect(startX + columnWidths.slice(0, i).reduce((a, b) => a + b, 0), startY, columnWidths[i], rowHeight).fill('#EAF3FC');
+          doc.fillColor('#000000').text(header, startX + columnWidths.slice(0, i).reduce((a, b) => a + b, 0), startY + 3, {
               width: columnWidths[i],
               align: 'center'
           });
       });
 
       // Draw a line under the headers
-      doc.moveTo(startX, startY + 20)
-         .lineTo(startX + columnWidths.reduce((a, b) => a + b, 0), startY + 20)
-         .stroke();
+      doc.moveTo(startX, startY + rowHeight)
+          .lineTo(startX + columnWidths.reduce((a, b) => a + b, 0), startY + rowHeight)
+          .stroke();
 
-      // Reset font for the table rows
-      doc.font('Helvetica').moveDown();
+      doc.moveDown();
 
       // Draw table rows
-      salesData.forEach(sale => {
-          let rowY = doc.y + 10; // Starting Y position for each row
-
+      salesData.forEach((sale, index) => {
+          const rowY = doc.y + 5; // Starting Y position for each row
           const rowValues = [
               sale.orderId,
-              sale.address.addressName,
-              new Date(sale.orderDate).toLocaleDateString(),
+              sale.customerId,
+              sale.customerName,
+              sale.orderDate,
               `RS: ${sale.totalAmount.toFixed(2)}`,
               sale.paymentMethod,
-              sale.paymentStatus,
-              sale.products[0]?.status || 'N/A'
+              sale.paymentStatus
           ];
 
+          // Check for page break
+          if (rowY + rowHeight > doc.page.height - doc.page.margins.bottom) {
+              doc.addPage();
+          }
+
+          // Fill row background
+          const fillColor = index % 2 === 0 ? '#FFFFFF' : '#F2F2F2'; // Alternate row color
+          doc.rect(startX, rowY - 5, columnWidths.reduce((a, b) => a + b, 0), rowHeight).fill(fillColor);
+
           rowValues.forEach((value, i) => {
-              doc.text(value, startX + columnWidths.slice(0, i).reduce((a, b) => a + b, 0), rowY, {
+              doc.fillColor('#000000').text(value, startX + columnWidths.slice(0, i).reduce((a, b) => a + b, 0), rowY + 5, {
                   width: columnWidths[i],
                   align: 'center'
               });
           });
 
-          // Move down to the next row
+          // Draw border for each row
+          doc.moveTo(startX, rowY + rowHeight - 5)
+              .lineTo(startX + columnWidths.reduce((a, b) => a + b, 0), rowY + rowHeight - 5)
+              .stroke();
+
           doc.moveDown();
       });
+
+      // Draw footer
+      doc.moveDown(2);
+      doc.fontSize(10).fillColor('#555555').text('Generated on: ' + new Date().toLocaleString(), { align: 'center' });
 
       // End the document
       doc.end();
@@ -245,51 +282,79 @@ const exportSalesToPDF = async (req, res) => {
 
 
 
-
 const exportSalesToExcel = async (req, res) => {
-    try {
-        const salesData = await orders.find({
-            $or: [
-                { paymentStatus: 'Success' },
-                { 'products.status': 'Delivered' }
-            ],
-            'products.status': { $nin: ['Cancelled', 'Returned'] }
-        }).lean();
+  try {
+      const { dateRange, startDateParam } = req.query;
+      let startDate;
+      const endDate = new Date();
 
-        const workbook = new ExcelJS.Workbook();
-        const worksheet = workbook.addWorksheet('Sales Data');
+      // Determine startDate based on query or date range
+      if (startDateParam) {
+          startDate = new Date(startDateParam);
+      } else {
+          switch (dateRange) {
+              case '1w':
+                  startDate = new Date();
+                  startDate.setDate(endDate.getDate() - 7);
+                  break;
+              case '1m':
+                  startDate = new Date();
+                  startDate.setMonth(endDate.getMonth() - 1);
+                  break;
+              case '1y':
+                  startDate = new Date();
+                  startDate.setFullYear(endDate.getFullYear() - 1);
+                  break;
+              case 'all':
+              default:
+                  startDate = null;
+                  break;
+          }
+      }
 
-        // Set column headers
-        worksheet.columns = [
-            { header: 'Invoice No', key: 'orderId', width: 30 },
-            { header: 'Customer Name', key: 'customerName', width: 30 },
-            { header: 'Order Date', key: 'orderDate', width: 15 },
-            { header: 'Total Amount', key: 'totalAmount', width: 15 },
-            { header: 'Payment Method', key: 'paymentMethod', width: 30 },
-            { header: 'Payment Status', key: 'paymentStatus', width: 20 },
-            { header: 'Order Status', key: 'orderStatus', width: 20 }
-        ];
+      const salesData = await orders.find({
+          $or: [
+              { paymentStatus: 'Success' },
+              { 'products.status': 'Delivered' }
+          ],
+          'products.status': { $nin: ['Cancelled', 'Returned'] },
+          ...(startDate ? { orderDate: { $gte: startDate, $lte: endDate } } : {})
+      }).lean();
 
-        // Add rows to worksheet
-        salesData.forEach(sale => {
-            worksheet.addRow({
-                orderId: sale.orderId,
-                customerName: sale.address.addressName,
-                orderDate: new Date(sale.orderDate).toLocaleDateString(),
-                totalAmount: `RS: ${sale.totalAmount.toFixed(2)}`,
-                paymentMethod: sale.paymentMethod,
-                paymentStatus: sale.paymentStatus,
-                orderStatus: sale.products[0]?.status || 'N/A'
-            });
-        });
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Sales Data');
 
-        res.setHeader('Content-Disposition', 'attachment; filename=Sales_Report.xlsx');
-        await workbook.xlsx.write(res);
-        res.end();
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('An error occurred while exporting sales data to Excel');
-    }
+      // Set column headers
+      worksheet.columns = [
+          { header: 'Invoice No', key: 'orderId', width: 30 },
+          { header: 'Customer Name', key: 'customerName', width: 30 },
+          { header: 'Order Date', key: 'orderDate', width: 15 },
+          { header: 'Total Amount', key: 'totalAmount', width: 15 },
+          { header: 'Payment Method', key: 'paymentMethod', width: 30 },
+          { header: 'Payment Status', key: 'paymentStatus', width: 20 },
+          { header: 'Order Status', key: 'orderStatus', width: 20 }
+      ];
+
+      // Add rows to worksheet
+      salesData.forEach(sale => {
+          worksheet.addRow({
+              orderId: sale.orderId,
+              customerName: sale.address.addressName,
+              orderDate: new Date(sale.orderDate).toLocaleDateString(),
+              totalAmount: `RS: ${sale.totalAmount.toFixed(2)}`,
+              paymentMethod: sale.paymentMethod,
+              paymentStatus: sale.paymentStatus,
+              orderStatus: sale.products[0]?.status || 'N/A'
+          });
+      });
+
+      res.setHeader('Content-Disposition', 'attachment; filename=Sales_Report.xlsx');
+      await workbook.xlsx.write(res);
+      res.end();
+  } catch (error) {
+      console.error(error);
+      res.status(500).send('An error occurred while exporting sales data to Excel');
+  }
 };
 
 

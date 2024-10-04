@@ -25,31 +25,47 @@ const loadCart = async (req, res) => {
     }
 };
 
-// Add to cart
+
+
 const addToCart = async (req, res) => {
     try {
         const userId = req.session.user.id;
         const productId = req.body.productId;
-        let quantity = parseInt(req.body.quantity, 10); 
-        
-    
+        let quantity = parseInt(req.body.quantity, 10);
+
         if (!productId || quantity <= 0) {
             return res.status(400).send('Invalid product ID or quantity');
         }
 
+        // Fetch the product to check stock availability
         const product = await Product.findById(productId);
         if (!product) {
             return res.status(404).send('Product not found');
         }
 
+        // Check if the requested quantity exceeds available stock
+        if (quantity > product.quantity) {
+            quantity = product.quantity;  // Set quantity to available stock if exceeded
+        }
+
+        // Fetch the user's cart
         let cart = await Cart.findOne({ user: userId });
 
-      
+        // If no cart exists, create a new one
+        if (!cart) {
+            cart = new Cart({ user: userId, products: [] });
+        }
+
         // Check if the product is already in the cart
         const existingProductIndex = cart.products.findIndex(item => item.product.equals(productId));
         if (existingProductIndex > -1) {
-            
+            // Update the quantity for the existing product in the cart
             cart.products[existingProductIndex].quantity += quantity;
+
+            // Ensure the quantity in the cart does not exceed either the stock or a max limit (5)
+            if (cart.products[existingProductIndex].quantity > product.quantity) {
+                cart.products[existingProductIndex].quantity = product.quantity;
+            }
             if (cart.products[existingProductIndex].quantity > 5) {
                 cart.products[existingProductIndex].quantity = 5;
             }
@@ -59,7 +75,6 @@ const addToCart = async (req, res) => {
         }
 
         await cart.save();
-        
 
         res.redirect('/cart');
         

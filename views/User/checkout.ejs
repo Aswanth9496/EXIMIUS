@@ -583,30 +583,39 @@ font-weight: bold;
                                                         
                             
 
-                            <div class="w-100"></div>
+                         <div class="w-100"></div>
 
-                            <div class="col-md-12">
-                                <div class="cart-detail">
-                                    <h2>Payment Method</h2>
-                                    
-                                    <div class="form-group">
-                                        <div class="col-md-12">
-                                            <div class="radio">
-                                                <label><input type="radio" name="optradio" value="razorpay"> Online Payment</label>
-                                            </div>
+                         <div class="col-md-12">
+                            <div class="cart-detail">
+                                <h2 class="text-center mb-4" style="color: #333;">Payment Method</h2> <!-- Centered heading -->
+                        
+                                <div class="form-group">
+                                    <div class="col-md-12">
+                                        <div class="radio mb-3"> <!-- Added margin-bottom for spacing -->
+                                            <label style="font-weight: 600;"> <!-- Bold label for emphasis -->
+                                                <input type="radio" name="optradio" value="razorpay"> 
+                                                <span style="margin-left: 8px;">Online Payment</span> <!-- Added spacing -->
+                                            </label>
                                         </div>
                                     </div>
-                                    
-                                    <div class="form-group">
-                                        <div class="col-md-12">
-                                            <div class="radio">
-                                                <label><input type="radio" name="optradio" value="cod"> COD</label>
+                                </div>
+                        
+                                <div class="form-group">
+                                    <div class="col-md-12">
+                                        <div class="radio mb-3">
+                                            <label style="font-weight: 600;">
+                                                <input type="radio" name="optradio" value="cod" id="codOption"> 
+                                                <span style="margin-left: 8px;">COD</span>
+                                            </label>
+                                            <div id="codWarning" class="text-danger" style="display: none; margin-top: 4px;">
+                                                This option is only available for orders under ₹1000.
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                
+                        
                             </div>
+                        </div>
                         </div>
                         <div class="row">
                             <div class="col-md-12 text-center">
@@ -741,6 +750,33 @@ font-weight: bold;
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    const totalAmountElement = document.getElementById('totalAmount'); // Total amount element
+    const codOption = document.getElementById('codOption'); // COD radio button
+    const codWarning = document.getElementById('codWarning'); // Warning message
+    
+    // Function to check the total amount and enable/disable COD option
+    function updateCodOption() {
+        const totalAmount = parseFloat(totalAmountElement.innerText.replace(/,/g, '').replace('₹', '').trim());
+        
+        if (totalAmount <= 1000) {
+            codOption.disabled = false; // Enable COD option
+            codWarning.style.display = 'none'; // Hide warning message
+        } else {
+            codOption.disabled = true; // Disable COD option
+            codWarning.style.display = 'block'; // Show warning message
+        }
+    }
+
+    // Call the function initially to set the correct state
+    updateCodOption();
+
+    // Optionally, if the total amount can change (like applying discounts), call this function again
+    // whenever the total amount changes.
+});
+
 
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('addressForm');
@@ -966,6 +1002,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const rzp1 = new Razorpay(options);
         rzp1.open();
+
+          // Handle payment failure
+          rzp1.on('payment.failed', async (response) => {
+                    console.error('Payment failed:', response); // Log payment failure
+
+                    // Call the route to place order with payment status as 'Failed'
+                    const failedPaymentDetails = {
+                        addressId: addressId,
+                        totalAmount: totalAmount,
+                        couponCode: couponCode,
+                        paymentStatus: 'Failed' // Set payment status as Failed
+                    };
+
+                    const failureResponse = await fetch('/placeOrderFailed', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(failedPaymentDetails)
+                    });
+
+                    const result = await failureResponse.json();
+                    if (result.success) {
+                        console.log('Order placed with failed payment status');
+                         window.location.href = '/orderConfirmation'
+                    } else {
+                        alert('Order could not be placed due to payment failure. Please try again.');
+                    }
+                });
 
     } catch (error) {
         console.error('Error initializing Razorpay payment:', error);

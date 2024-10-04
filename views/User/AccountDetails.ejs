@@ -550,7 +550,7 @@
                 try {
                     const url = `/updateProfile?username=${encodeURIComponent(username)}&mobile=${encodeURIComponent(mobile)}`;
                     const response = await fetch(url, {
-                        method: 'GET',
+                        method: 'POST',
                         headers: {
                             'Accept': 'application/json',
                         },

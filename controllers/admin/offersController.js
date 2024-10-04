@@ -44,6 +44,9 @@ const loadOffers = async (req, res) => {
 };
 
 
+
+
+
 const addCategoriOffer = async (req, res) => {
     try {
       

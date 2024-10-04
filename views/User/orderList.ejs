@@ -401,7 +401,7 @@
                                                 <td>&#8377;<%= product.price %></td>
                                                 <td>&#8377;<%= order.totalAmount %></td>
                                                 <td>
-                                                    <% if (product.status === 'Cancelled' || product.return_request === true) { %>
+                                                    <% if (product.status === 'Cancelled' || product.return_request === true || product.status === 'Returned' ) { %>
                                                         <!-- Do not show any button if the status is 'Cancelled' -->
                                                     <% } else if (product.status === 'Delivered') { %>
                                                         <button data-action="/returnOrder?orderId=<%= order._id %>&productId=<%= product.productId._id %>" class="btn btn-outline-primary btn-sm action-btn">Return</button>

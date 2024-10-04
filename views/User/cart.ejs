@@ -116,7 +116,12 @@
                                         <td class="quantity__item">
                                             <div class="quantity">
                                                 <div class="pro-qty-2">
-                                                    <input type="number" class="quantity-input" data-id="<%= item.product._id %>" value="<%= item.quantity %>" min="1" max="<%= Math.min(5, item.product.quantity) %>">
+                                                    <input type="number" class="quantity-input" data-id="<%= item.product._id %>" 
+                                                        value="<%= item.quantity %>" 
+                                                        min="1" 
+                                                        max="<%= Math.min(5, item.product.quantity) %>" 
+                                                        oninput="validateQuantity(this)" 
+                                                        onkeydown="return false;">
                                                 </div>
                                             </div>
                                         </td>
@@ -174,6 +179,13 @@
 
 <script>
 
+function validateQuantity(input) {
+        const max = parseInt(input.max, 10); // Get the max value from the input attribute
+        if (input.value > max) {
+            input.value = max; // Reset the value to the max if it exceeds the limit
+        }
+    }
+
 document.addEventListener('DOMContentLoaded', function () {
     // Remove item from cart (SweetAlert for confirmation)
     const removeButtons = document.querySelectorAll('.remove-item');
@@ -218,7 +230,7 @@ document.addEventListener('DOMContentLoaded', function () {
     quantityInputs.forEach(input => {
         input.addEventListener('change', function () {
             const productId = this.getAttribute('data-id');
-            let newQuantity = Math.min(5, Math.max(1, this.value)); // Ensure the quantity stays between 1 and 5
+            let newQuantity = Math.min(5, Math.max(1, Number(this.value))); // Ensure the quantity stays between 1 and 5
 
             // Prepare the data for the cart update request
             const data = {
@@ -251,34 +263,42 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // Function to update the cart UI dynamically
+// Function to update the cart UI dynamically
 function updateCartUI() {
     const rows = document.querySelectorAll('tbody tr');
     let subtotal = 0;
 
     rows.forEach(row => {
         const quantityInput = row.querySelector('.quantity-input');
-        const productId = quantityInput.getAttribute('data-id');
         const quantity = parseInt(quantityInput.value, 10);
 
-        // Get the price element and calculate price
+        // Get the price and offerPrice elements
         const priceElement = row.querySelector('.product__cart__item__text h5');
-        const priceText = priceElement.innerText.replace('$', '').replace('del', '').trim();
-        const price = parseFloat(priceText);
+        const offerPriceExists = priceElement.querySelector('del'); // Check if offer price is displayed (indicated by <del> for the original price)
+        
+        let price = 0;
+        if (offerPriceExists) {
+            // Use offerPrice if it's displayed
+            price = parseFloat(priceElement.innerText.split('RS:')[2].trim()); // Second RS: for offerPrice
+        } else {
+            // Fallback to regular price if offerPrice is not available
+            price = parseFloat(priceElement.innerText.split('RS:')[1].trim()); // First RS: for regular price
+        }
 
         // Calculate the total price for this product
         const total = price * quantity;
 
         // Update the total price in the DOM for the product
         const totalPriceElement = row.querySelector('.cart__price');
-        totalPriceElement.innerText = `$${total.toFixed(2)}`;
+        totalPriceElement.innerText = `RS:${total.toFixed(2)}`;
 
         // Add the total to the subtotal
         subtotal += total;
     });
 
     // Update the subtotal and total in the cart
-    document.querySelector('.cart__total ul li:nth-child(1) span').innerText = `$${subtotal.toFixed(2)}`;
-    document.querySelector('.cart__total ul li:nth-child(2) span').innerText = `$${subtotal.toFixed(2)}`;
+    document.querySelector('.cart__total ul li:nth-child(1) span').innerText = `RS:${subtotal.toFixed(2)}`;
+    document.querySelector('.cart__total ul li:nth-child(2) span').innerText = `RS:${subtotal.toFixed(2)}`;
 }
 
 </script>

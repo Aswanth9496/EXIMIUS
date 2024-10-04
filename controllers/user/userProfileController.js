@@ -61,7 +61,7 @@ const updateUserPassword = async (req, res) => {
 
 const updateProfile = async (req, res) => {
     try {
-        console.log('hi');
+      
         
         const userId = req.session.user.id;
         const { username, mobile } = req.query; 

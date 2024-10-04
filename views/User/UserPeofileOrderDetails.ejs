@@ -57,8 +57,103 @@
                                         <li class="mb-2">
                                             <span class="text-muted">Payment Method:</span> <strong><%= order.paymentMethod %></strong>
                                         </li>
+                                        <li class="mb-2">
+                                            <span class="text-muted">Payment Status:</span> <strong><%= order.paymentStatus %></strong>
+                                        </li>
                                     </ul>
+                                
+                                    <!-- Conditional Retry Payment Button -->
+                                    <% if (order.paymentMethod === 'razorpay' && order.paymentStatus === 'Pending') { %>
+                                        <div class="text-center mt-4">
+                                            <button class="btn btn-warning" onclick="retryPayment('<%= order.orderId %>')">
+                                                Retry Payment
+                                            </button>
+                                        </div>
+                                    <% } %>
                                 </div>
+                                
+                                <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+                                
+                                <script>
+                                    function retryPayment(orderId) {
+                                        Swal.fire({
+                                            title: 'Are you sure?',
+                                            text: "Do you want to retry the payment?",
+                                            icon: 'warning',
+                                            showCancelButton: true,
+                                            confirmButtonColor: '#3085d6',
+                                            cancelButtonColor: '#d33',
+                                            confirmButtonText: 'Yes, retry payment!'
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                fetch('/retrypayment', {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'Content-Type': 'application/json',
+                                                    },
+                                                    body: JSON.stringify({ orderId })
+                                                })
+                                                .then(response => response.json())
+                                                .then(data => {
+                                                    if (data.success) {
+                                                        const options = {
+                                                            key: data.keyId,
+                                                            amount: data.totalAmount * 100, // Amount is in currency subunits
+                                                            currency: 'INR',
+                                                            order_id: data.razorpayOrderId,
+                                                            handler: function (response) {
+                                                                fetch('/verifyRetryPayment', {
+                                                                    method: 'POST',
+                                                                    headers: {
+                                                                        'Content-Type': 'application/json',
+                                                                    },
+                                                                    body: JSON.stringify({
+                                                                        razorpay_order_id: response.razorpay_order_id,
+                                                                        razorpay_payment_id: response.razorpay_payment_id,
+                                                                        razorpay_signature: response.razorpay_signature,
+                                                                        orderId: data.orderId
+                                                                    })
+                                                                })
+                                                                .then(res => res.json())
+                                                                .then(verificationData => {
+                                                                    if (verificationData.success) {
+                                                                        Swal.fire('Success', 'Payment successful!', 'success')
+                                                                          .then(() => window.location.href = '/orders');
+                                                                    } else {
+                                                                        Swal.fire('Error', verificationData.message, 'error');
+                                                                    }
+                                                                });
+                                                            },
+                                                            prefill: {
+                                                                name: '<%= user.name %>',
+                                                                email: '<%= user.email %>',
+                                                                contact: '<%= user.contact %>'
+                                                            },
+                                                            theme: {
+                                                                color: '#F37254'
+                                                            }
+                                                        };
+                                                        const razorpay = new Razorpay(options);
+                                                        
+                                                        // Handle razorpay payment failure or close
+                                                        razorpay.on('payment.failed', function (response) {
+                                                            Swal.fire('Error', 'Payment failed. Please try again.', 'error');
+                                                        });
+                                                        
+                                                        razorpay.open();
+                                                    } else {
+                                                        Swal.fire('Error', data.message, 'error');
+                                                    }
+                                                })
+                                                .catch(error => {
+                                                    Swal.fire('Error', 'Failed to retry payment.', 'error');
+                                                    console.error(error);
+                                                });
+                                            }
+                                        });
+                                    }
+                                </script>
+                                
                             </div>
                         </div>
 
@@ -72,6 +167,7 @@
                                             <th>Product</th>
                                             <th>Quantity</th>
                                             <th>Price</th>
+                                            <th>GST (18%)</th> <!-- New column for GST -->
                                             <th>Total</th>
                                         </tr>   
                                     </thead>
@@ -81,34 +177,35 @@
                                                 <td><%= an.productId.name %></td>
                                                 <td><%= an.quantity %></td>
                                                 <td>&#8377;<%= an.price %></td>
-                                                <td>&#8377;<%= an.quantity * an.price %></td>
+                                                <td>&#8377;<%= (an.price * 0.18).toFixed(2) %></td> <!-- GST Calculation -->
+                                                <td>&#8377;<%= (an.quantity * an.price).toFixed(2) %></td> <!-- Total without GST -->
                                             </tr>
                                         <% }) %>
                                     </tbody>
                                     <tfoot class="bg-light">
                                         <tr>
-                                            <td colspan="3" class="text-right"><strong>Subtotal:</strong></td>
-                                            <td><strong>&#8377;<%= order.totalAmount %></strong></td>
+                                            <td colspan="4" class="text-right"><strong>Subtotal:</strong></td>
+                                            <td><strong>&#8377;<%= (order.totalAmount+ order.discountAmount).toFixed(2) %></strong></td>
                                         </tr>
                                         <tr>
-                                            <td colspan="3" class="text-right"><strong>Shipping:</strong></td>
+                                            <td colspan="4" class="text-right"><strong>Shipping:</strong></td>
                                             <td><strong>&#8377;0</strong></td>
                                         </tr>
                                         <% if (order.discountAmount != 0) { %>
                                             <% if (order.discountAmount > 0) { %>
                                                 <tr class="bg-success text-white">
-                                                    <td colspan="3" class="text-right"><strong>Discount:</strong></td>
-                                                    <td><strong>&#8377;<%= order.discountAmount %></strong></td>
+                                                    <td colspan="4" class="text-right"><strong>Discount:</strong></td>
+                                                    <td><strong>&#8377;<%= order.discountAmount.toFixed(2) %></strong></td>
                                                 </tr>
                                             <% } %>
                                             <tr class="table-active bg-primary text-white">
-                                                <td colspan="3" class="text-right"><strong>Total Amount:</strong></td>
-                                                <td><strong>&#8377;<%= order.totalAmount - order.discountAmount %></strong></td>
+                                                <td colspan="4" class="text-right"><strong>Total Amount:</strong></td>
+                                                <td><strong>&#8377;<%= (order.totalAmount ).toFixed(2) %></strong></td>
                                             </tr>
                                         <% } else { %>
                                             <tr class="table-active bg-primary text-white">
-                                                <td colspan="3" class="text-right"><strong>Total Amount:</strong></td>
-                                                <td><strong>&#8377;<%= order.totalAmount %></strong></td>
+                                                <td colspan="4" class="text-right"><strong>Total Amount:</strong></td>
+                                                <td><strong>&#8377;<%= order.totalAmount.toFixed(2) %></strong></td>
                                             </tr>
                                         <% } %>
                                     </tfoot>
@@ -124,6 +221,97 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+
+
+
+
+<script>
+
+    function retryPayment(orderId) {
+      
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "Do you want to retry the payment?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, retry payment!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch('/retrypayment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ orderId })
+                })
+                .then(response => response.json())
+                
+                .then(data => {
+                    if (data.success) {
+                        const options = {
+                            key: data.keyId,
+                            amount: data.totalAmount * 100, // Amount is in currency subunits
+                            currency: 'INR',
+                            order_id: data.razorpayOrderId,
+                            handler: function (response) {
+                                fetch('/verifyRetryPayment', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        razorpay_order_id: response.razorpay_order_id,
+                                        razorpay_payment_id: response.razorpay_payment_id,
+                                        razorpay_signature: response.razorpay_signature,
+                                        orderId: data.orderId
+                                    })
+                                })
+                                .then(res => res.json())
+                                .then(verificationData => {
+                                    if (verificationData.success) {
+                                        Swal.fire('Success', 'Payment successful!', 'success')
+                                          .then(() => window.location.href = '/orderList');
+                                    } else {
+                                        Swal.fire('Error', verificationData.message, 'error');
+                                    }
+                                });
+                            },
+                            prefill: {
+                                name: '<%= user.name %>',
+                                email: '<%= user.email %>',
+                                contact: '<%= user.contact %>'
+                            },
+                            theme: {
+                                color: '#F37254'
+                            }
+                        };
+                        const razorpay = new Razorpay(options);
+                        
+                        // Handle razorpay payment failure or close
+                        razorpay.on('payment.failed', function (response) {
+                            Swal.fire('Error', 'Payment failed. Please try again.', 'error');
+                        });
+                        
+                        razorpay.open();
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    Swal.fire('Error', 'Failed to retry payment.', 'error');
+                    console.error(error);
+                });
+            }
+        });
+    }
+</script>
 
 
 

@@ -1,5 +1,6 @@
 const Order = require('../../models/ordersModel');
 const Product =require('../../models/productsModel');
+const  Wallet  = require('../../models/walletModel');
 
 
 const loadOrderList = async (req, res) => {
@@ -111,6 +112,38 @@ const cancelOrder = async (req, res) => {
             console.log(`Product with ID ${productId} not found in the product collection.`);
         }
 
+
+        if (order.paymentStatus === 'Success') {
+            // Calculate the refund amount for the canceled product
+            const refundAmount = product.totalPrice;
+
+            // Find the user's wallet or create a new one if it doesn't exist
+            let userWallet = await Wallet.findOne({ user_id: order.userId });
+
+            if (!userWallet) {
+                // Create a new wallet for the user if none exists
+                userWallet = new Wallet({
+                    user_id: order.userId,
+                    balance: 0,  // Initialize with 0 balance
+                    transactions: []
+                });
+            }
+
+            // Update the user's wallet balance by adding the refund amount
+            userWallet.balance += refundAmount;
+
+            // Add a transaction to the wallet's transactions array
+            userWallet.transactions.push({
+                amount: refundAmount,
+                description: `Refund for cancelled product from Order ${order.orderId}`,
+                type: 'credit',
+                date: new Date() // Add a timestamp for the transaction
+            });
+
+            // Save the updated or newly created wallet
+            await userWallet.save();
+        }
+
         // Send success response
         res.json({ success: true, message: 'Product successfully cancelled and stock updated.' });
     } catch (error) {
@@ -120,11 +153,14 @@ const cancelOrder = async (req, res) => {
 };
 
 
+
 const loadOrderDetails = async (req,res)=>{
 
     try {
         const orderId = req.params.id;
         const order = await Order.findById(orderId).populate('products.productId');
+       
+        
 
         if (!order) {
             return res.status(404).send('Order not found');
@@ -132,7 +168,9 @@ const loadOrderDetails = async (req,res)=>{
 
         const addressdata = order.address;
 
-        res.render('UserPeofileOrderDetails', { order, addressdata });
+        const user = req.session.user
+
+        res.render('UserPeofileOrderDetails', { order, addressdata,user, orderId });
 
       
     } catch (error) {

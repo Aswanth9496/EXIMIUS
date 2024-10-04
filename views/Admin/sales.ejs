@@ -127,21 +127,19 @@
           </select>
       </div>
        
-        <div class="btn-group export-dropdown">
-          <button class="btn btn-primary dropdown-toggle" type="button" id="exportDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <i class="mdi mdi-export"></i> Export
-        </button>
-        <div class="dropdown-menu" aria-labelledby="exportDropdown">
-            <a class="dropdown-item" href="/admin/exportSalesToPDF" data-toggle="tooltip" title="Download sales report as PDF">
-                <i class="mdi mdi-file-pdf"></i> Export as PDF
-            </a>
-            <a class="dropdown-item" href="/admin/exportSalesToExcel" data-toggle="tooltip" title="Download sales report as Excel">
-                <i class="mdi mdi-file-excel"></i> Export as Excel
-            </a>
-        </div>
-        </div>
-    </div>
-    
+  
+      <button class="btn btn-primary dropdown-toggle" type="button" id="exportDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i class="mdi mdi-export"></i> Export
+      </button>
+      <div class="dropdown-menu" aria-labelledby="exportDropdown">
+          <a class="dropdown-item" id="exportPDF" data-toggle="tooltip" title="Download sales report as PDF">
+              <i class="mdi mdi-file-pdf"></i> Export as PDF
+          </a>
+          <a class="dropdown-item" id="exportExcel" data-toggle="tooltip" title="Download sales report as Excel">
+              <i class="mdi mdi-file-excel"></i> Export as Excel
+          </a>
+      </div>
+  </div>    
 
       <div class="row">
         <div class="col-12">
@@ -154,6 +152,7 @@
                       <th>Invoice No</th>
                       <th>Customer Name</th>
                       <th>Order Date</th>
+                      <Th>discountAmount</Th>
                       <th>Total Amount</th>
                       <th>Payment Method</th>
                       <th>Payment Status</th>
@@ -171,6 +170,7 @@
                           <td><%= sale.orderId %></td>
                           <td><%= sale.address.addressName %></td>
                           <td><%= new Date(sale.orderDate).toLocaleDateString() %></td>
+                          <td><%= sale.discountAmount ? `RS: ${sale.discountAmount.toFixed(2)}` : 'No Discount' %></td> 
                           <td>RS: <%= sale.totalAmount.toFixed(2) %></td>
                           <td><%= sale.paymentMethod %></td>
                           <td><%= sale.paymentStatus %></td>
@@ -185,25 +185,46 @@
 
               <nav aria-label="Sales report pagination">
                 <ul class="pagination justify-content-center">
+                    <!-- First Page Link -->
                     <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
                         <a class="page-link" href="?page=1&limit=<%= limit %>">First</a>
                     </li>
+            
+                    <!-- Previous Page Link -->
                     <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
                         <a class="page-link" href="?page=<%= currentPage - 1 %>&limit=<%= limit %>">Previous</a>
                     </li>
-                    <% for (let i = 1; i <= totalPages; i++) { %>
+            
+                    <!-- Dynamic Page Links -->
+                    <% 
+                    let maxPagesToShow = 5; // Maximum number of page buttons to show
+                    let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2)); // Calculate the starting page
+                    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1); // Calculate the ending page
+                    
+                    // Ensure we show a full range of 5 pages even if currentPage is at the end
+                    if (endPage - startPage + 1 < maxPagesToShow) {
+                        startPage = Math.max(1, endPage - maxPagesToShow + 1);
+                    }
+                    %>
+            
+                    <% for (let i = startPage; i <= endPage; i++) { %>
                         <li class="page-item <%= i === currentPage ? 'active' : '' %>">
                             <a class="page-link" href="?page=<%= i %>&limit=<%= limit %>"><%= i %></a>
                         </li>
                     <% } %>
+            
+                    <!-- Next Page Link -->
                     <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
                         <a class="page-link" href="?page=<%= currentPage + 1 %>&limit=<%= limit %>">Next</a>
                     </li>
+            
+                    <!-- Last Page Link -->
                     <li class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>">
                         <a class="page-link" href="?page=<%= totalPages %>&limit=<%= limit %>">Last</a>
                     </li>
                 </ul>
             </nav>
+            
             
             </div>
           </div>
@@ -214,109 +235,78 @@
 </div>
 
 
-<script>
-  $(document).ready(function() {
-      $('#dateRangeSelect').on('change', function() {
-          const selectedRange = $(this).val();
-          fetchSalesData(selectedRange);
-      });
-      
-      function fetchSalesData(dateRange) {
-          $.ajax({
-              url: '/admin/salesfilter',
-              method: 'GET',
-              data: { dateRange },
-              success: function(data) {
-                  updateSalesTable(data.salesData);
-                  updateSalesSummary(data.totalOrders, data.totalDiscount, data.totalSalesAmount);
-              },
-              error: function(err) {
-                  console.error('Error fetching sales data:', err);
-              }
-          });
-      }
-  
-      function updateSalesTable(salesData) {
-          const tbody = $('table tbody');
-          tbody.empty();
-          if (salesData.length === 0) {
-              tbody.append('<tr><td colspan="7" class="text-center">No sales data available</td></tr>');
-          } else {
-              salesData.forEach(sale => {
-                  tbody.append(`
-                      <tr>
-                          <td>${sale.orderId}</td>
-                          <td>${sale.address.addressName}</td>
-                          <td>${new Date(sale.orderDate).toLocaleDateString()}</td>
-                          <td>RS: ${sale.totalAmount.toFixed(2)}</td>
-                          <td>${sale.paymentMethod}</td>
-                          <td>${sale.paymentStatus}</td>
-                          <td>${sale.products[0]?.status || 'N/A'}</td>
-                      </tr>
-                  `);
-              });
-          }
-      }
-  
-      function updateSalesSummary(totalOrders, totalDiscount, totalSalesAmount) {
-          $('.total-orders').text(totalOrders);
-          $('.total-discount').text(`RS: ${totalDiscount.toFixed(2)}`);
-          $('.total-sales-amount').text(`RS: ${totalSalesAmount.toFixed(2)}`);
-      }
-  });
-  </script>
 
-  
   
   <script>
-    function filterSales() {
-        const selectedRange = document.getElementById('dateRangeSelect').value;
+async function filterSales() {
+    const selectedRange = document.getElementById('dateRangeSelect').value;
 
-        // Make an AJAX call to your backend to fetch filtered sales data
-        $.ajax({
-            url: '/admin/salesfilter',  // Update this URL to your endpoint for fetching sales data
-            method: 'GET',
-            data: { dateRange: selectedRange },
-            success: function(response) {
-                // Assuming response contains new sales data and relevant variables
-                // Update the table and other elements accordingly
-                const salesData = response.salesData;  // Update based on your response structure
-                const totalOrders = response.totalOrders;  // Update based on your response structure
-                const totalDiscount = response.totalDiscount;  // Update based on your response structure
-                const totalSalesAmount = response.totalSalesAmount;  // Update based on your response structure
-
-                // Update the sales data table
-                const tbody = $('table tbody');
-                tbody.empty(); // Clear existing rows
-
-                if (salesData.length === 0) {
-                    tbody.append('<tr><td colspan="7" class="text-center">No sales data available</td></tr>');
-                } else {
-                    salesData.forEach(sale => {
-                        tbody.append(`
-                            <tr>
-                                <td>${sale.orderId}</td>
-                                <td>${sale.address.addressName}</td>
-                                <td>${new Date(sale.orderDate).toLocaleDateString()}</td>
-                                <td>RS: ${sale.totalAmount.toFixed(2)}</td>
-                                <td>${sale.paymentMethod}</td>
-                                <td>${sale.paymentStatus}</td>
-                                <td>${sale.products[0]?.status || 'N/A'}</td>
-                            </tr>
-                        `);
-                    });
-                }
-
-                // Update summary cards
-                $('.total-orders').text(totalOrders);
-                $('.total-discount').text(`RS: ${totalDiscount.toFixed(2)}`);
-                $('.total-sales-amount').text(`RS: ${totalSalesAmount.toFixed(2)}`);
-            },
-            error: function(error) {
-                console.error("Error fetching sales data:", error);
-            }
-        });
+    if (!selectedRange) {
+        alert('Please select a valid date range.');
+        return;
     }
+
+    try {
+        // Fetch filtered sales data
+        const response = await fetch(`/admin/salesfilter?dateRange=${selectedRange}`, {
+            method: 'GET'
+        });
+        
+        const result = await response.json();
+        console.log(result);
+
+        const salesData = result.salesData;
+        const totalOrders = result.totalOrders;
+        const totalDiscount = result.totalDiscount;
+        const totalSalesAmount = result.totalSalesAmount;
+
+        // Update the sales data table
+        const tbody = document.querySelector('table tbody');
+        tbody.innerHTML = ''; // Clear existing rows
+
+        if (salesData.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center">No sales data available</td></tr>';
+        } else {
+            salesData.forEach(sale => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${sale.orderId}</td>
+                        <td>${sale.address.addressName}</td>
+                        <td>${new Date(sale.orderDate).toLocaleDateString()}</td>
+                        <td>${sale.discountAmount ? `RS: ${sale.discountAmount.toFixed(2)}` : 'No Discount'}</td>
+                        <td>RS: ${sale.totalAmount.toFixed(2)}</td>
+                        <td>${sale.paymentMethod}</td>
+                        <td>${sale.paymentStatus}</td>
+                        <td>${sale.products[0]?.status || 'N/A'}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Update summary cards
+        document.querySelector('.total-orders').textContent = totalOrders;
+        document.querySelector('.total-discount').textContent = `RS: ${totalDiscount.toFixed(2)}`;
+        document.querySelector('.total-sales-amount').textContent = `RS: ${totalSalesAmount.toFixed(2)}`;
+    } catch (error) {
+        console.error('Error fetching sales data:', error);
+    }
+}
+
+
+
+
+
+ // Add event listeners for exporting
+ document.getElementById('exportPDF').addEventListener('click', function() {
+        const selectedRange = document.getElementById('dateRangeSelect').value;
+        window.location.href = `/admin/exportSalesToPDF?dateRange=${selectedRange}`;
+    });
+
+    document.getElementById('exportExcel').addEventListener('click', function() {
+        const selectedRange = document.getElementById('dateRangeSelect').value;
+        window.location.href = `/admin/exportSalesToExcel?dateRange=${selectedRange}`;
+    });
+
 </script>
 
 
