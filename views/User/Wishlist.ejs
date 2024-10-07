@@ -138,7 +138,11 @@
                                             <% } %>
                                         </td>
                                         <td class="wishlist__actions">
-                                            <a href="#" class="btn btn-outline-success add-to-cart" data-product-id="<%= item.product._id %>">Add to Cart</a>
+                                            <% if (item.product.quantity > 0) { %>
+                                                <a href="#" class="btn btn-outline-success add-to-cart" data-product-id="<%= item.product._id %>">Add to Cart</a>
+                                            <% } else { %>
+                                                <span class="text-danger">Out of Stock</span>
+                                            <% } %>
                                             <a href="/removeFromWishlist/<%= item.product._id %>" class="btn btn-outline-danger remove-item" data-product-id="<%= item.product._id %>">Remove</a>
                                         </td>
                                     </tr>

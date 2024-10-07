@@ -18,7 +18,7 @@ const checkoutController = require('../controllers/user/checkoutControl');
 const orderListController =require('../controllers/user/userOrderListControll');
 const walletControll = require('../controllers/user/walletControl');
 const WishlistControll = require ('../controllers/user/WishlistControl');
-
+const UserLoginCheck = require('../Middlewares/UserLoginCheck');
 
 
 
@@ -26,16 +26,16 @@ router.get('/', userController.loadHomePage);
 router.get('/logout',userController.logOut);
 
 // User login controllers
-router.get('/login', userLogin.loginLoad);
+router.get('/login',UserLoginCheck, userLogin.loginLoad);
 router.post('/login', userLogin.userVerification);
 
 
 // User register controllers
-router.get('/register', userRegistration.loadRegister);
+router.get('/register',UserLoginCheck, userRegistration.loadRegister);
 router.post('/register', userRegistration.registerUser);
 
 // OTP page and verification
-router.get('/OTP', userRegistration.lodeOTPpage);
+router.get('/OTP',UserLoginCheck, userRegistration.lodeOTPpage);
 router.post('/OTP', userRegistration.verifiyingOTP);
 router.post('/resendOTP',userRegistration.resendOTP);
 router.get('/otp-remaining-time',userRegistration.remainingtime);
@@ -108,5 +108,8 @@ router.post('/placeOrderFailed',userAuthentication,checkoutController.placeOrder
 router.get('/razorpayCheckout',userAuthentication,checkoutController.razorpayCheckout);
 router.post('/retrypayment',userAuthentication,checkoutController.retryPayment);
 router.post('/verifyRetryPayment',userAuthentication,checkoutController.verifyRetryPayment);
+
+
+router.get('*', (req, res) => res.render('error', {status: 404, message: ''}))
 
 module.exports = router;

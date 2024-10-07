@@ -87,6 +87,9 @@ app.get('/exportSalesToPDF',isAuthenticated,salesControll.exportSalesToPDF);
 app.get('/salesfilter',isAuthenticated,salesControll.filterSales);
 
 
+//error handling
+app.get('*', (req, res) => res.render('error', {status: 404, message:''}))
+
 
 
 

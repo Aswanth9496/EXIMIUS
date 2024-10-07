@@ -326,8 +326,8 @@
           <!-- Status -->
           <div class="form-group">
             <label for="editOfferStatus">Status</label>
-            <select class="form-control" id="editOfferStatus" name="status" >
-              <option value="active">Active</option>
+            <select class="form-control" id="editOfferStatus" name="status">
+              <option value="active" selected>Active</option>
               <option value="inactive">Inactive</option>
             </select>
             <small class="text-danger" id="editOfferStatusError"></small>
@@ -336,6 +336,7 @@
           <!-- Applicable Products or Categories -->
           <div id="editOfferDetails"></div> <!-- Products or Categories dropdown will be added dynamically -->
         </div>
+         
 
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -414,6 +415,45 @@
               products: selectedProducts,
               categories: selectedCategories
           };
+
+          const nameError = document.getElementById('editOfferNameError')
+          const descriptionError = document.getElementById('editOfferDescriptionError')
+          const discountError = document.getElementById('editOfferDiscountError')
+          const statusError = document.getElementById('editOfferStatusError')
+
+
+          const namePattern = /^[a-zA-Z\s]*$/;
+          if (!offerName) {
+            nameError.innerHTML = 'Offer name is required'
+            return
+          } else {
+            nameError.innerHTML = ''
+          } 
+          if (!namePattern.test(offerName)) {
+            nameError.innerHTML = 'Offer name can only contain letters and spaces.';
+              return
+          }
+  
+          if (!offerDescription) {
+              descriptionError.innerHTML = 'Offer description is required.';
+              return
+          }
+  
+          if (!offerDiscount) {
+              discountError.innerHTML = 'Offer discount is required.';
+              return
+          } else if (isNaN(offerDiscount) || offerDiscount < 0 || offerDiscount > 100) {
+              discountError.innerHTML = 'Discount must be a number between 0 and 100.';
+              return
+          }
+  
+         
+  
+          if (!offerStatus) {
+              statusError.innerHTML = 'Offer status is required.';
+              return
+          }
+  
   
           try {
               const response = await fetch(`/admin/updateOffer/${offerId}`, {

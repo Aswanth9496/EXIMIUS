@@ -56,8 +56,8 @@ const dbConnect = require('./config/db.Connect');
 dbConnect();
 
 // Use routes
-app.use('/', userRoutes);
 app.use('/admin', adminRoutes);
+app.use('/', userRoutes);
 
 app.use((err, req, res, next) => {
     console.error(err.stack); // Log the error for debugging
