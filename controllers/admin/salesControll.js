@@ -159,125 +159,128 @@ const filterSales = async (req, res) => {
 
 
 
+
 const exportSalesToPDF = async (req, res) => {
-  try {
-      // Simulating the retrieved sales data
-      const salesData = [
-          {
-              orderId: 'ORD-1727598990',
-              customerId: '607',
-              customerName: 'ayush',
-              orderDate: '29/9/2024',
-              totalAmount: 21000.00,
-              paymentMethod: 'razorpay',
-              paymentStatus: 'Success'
-          },
-          {
-              orderId: 'ORD-1727599035',
-              customerId: '071',
-              customerName: 'ayush',
-              orderDate: '29/9/2024',
-              totalAmount: 31000.00,
-              paymentMethod: 'razorpay',
-              paymentStatus: 'Success'
-          },
-          {
-              orderId: 'ORD-1727599421',
-              customerId: '251',
-              customerName: 'aswanth',
-              orderDate: '29/9/2024',
-              totalAmount: 70500.00,
-              paymentMethod: 'razorpay',
-              paymentStatus: 'Success'
-          }
-      ];
+    try {
+        // Simulated sales data
+        const salesData = [
+            {
+                orderId: 'ORD-1727598990',
+                customerId: '607',
+                customerName: 'ayush',
+                orderDate: '29/9/2024',
+                totalAmount: 21000.00,
+                paymentMethod: 'razorpay',
+                paymentStatus: 'Success'
+            },
+            {
+                orderId: 'ORD-1727599035',
+                customerId: '071',
+                customerName: 'ayush',
+                orderDate: '29/9/2024',
+                totalAmount: 31000.00,
+                paymentMethod: 'razorpay',
+                paymentStatus: 'Success'
+            },
+            {
+                orderId: 'ORD-1727599421',
+                customerId: '251',
+                customerName: 'aswanth',
+                orderDate: '29/9/2024',
+                totalAmount: 70500.00,
+                paymentMethod: 'razorpay',
+                paymentStatus: 'Success'
+            }
+        ];
 
-      const doc = new PDFDocument({ margin: 50 });
-      const filename = 'Sales_Report.pdf';
-      res.setHeader('Content-disposition', `attachment; filename=${filename}`);
-      res.setHeader('Content-type', 'application/pdf');
+        const doc = new PDFDocument({ margin: 50 });
+        const filename = 'Sales_Report.pdf';
+        res.setHeader('Content-disposition', `attachment; filename=${filename}`);
+        res.setHeader('Content-type', 'application/pdf');
 
-      doc.pipe(res);
+        doc.pipe(res);
 
-      // Title
-      doc.fontSize(25).text('Sales Report', { align: 'center' });
-      doc.moveDown(2);
+        // Title
+        doc.fontSize(16).text('Sales Report', { align: 'center' });
+        doc.moveDown(1);
 
-      // Define table headers and column widths
-      const tableHeaders = [
-          'Invoice No', 'Customer ID', 'Customer Name', 
-          'Order Date', 'Total Amount (RS)', 
-          'Payment Method', 'Payment Status'
-      ];
-      const columnWidths = [100, 80, 100, 80, 100, 100, 80]; // Adjusted widths
-      const startX = 50; // Starting X position for the table
-      const startY = doc.y; // Starting Y position for the table
-      const rowHeight = 20; // Height of each row
+        // Define table headers and column widths
+        const tableHeaders = [
+            'Invoice No', 'Customer ID', 'Customer Name', 
+            'Order Date', 'Total Amount (RS)', 
+            'Payment Method', 'Payment Status'
+        ];
 
-      // Draw table headers
-      doc.fontSize(12).font('Helvetica-Bold').fillColor('#4F81BD');
-      tableHeaders.forEach((header, i) => {
-          doc.rect(startX + columnWidths.slice(0, i).reduce((a, b) => a + b, 0), startY, columnWidths[i], rowHeight).fill('#EAF3FC');
-          doc.fillColor('#000000').text(header, startX + columnWidths.slice(0, i).reduce((a, b) => a + b, 0), startY + 3, {
-              width: columnWidths[i],
-              align: 'center'
-          });
-      });
+        // Adjusted column widths
+        const columnWidths = [100, 70, 90, 70, 80, 80, 70];
+        const totalTableWidth = columnWidths.reduce((a, b) => a + b, 0); // Calculate total width of the table
+        const pageWidth = doc.page.width; // Get the width of the page
+        const startX = (pageWidth - totalTableWidth) / 2; // Center the table
+        const startY = doc.y; // Starting Y position for the table
+        const rowHeight = 15; // Height of each row
 
-      // Draw a line under the headers
-      doc.moveTo(startX, startY + rowHeight)
-          .lineTo(startX + columnWidths.reduce((a, b) => a + b, 0), startY + rowHeight)
-          .stroke();
+        // Draw table headers
+        doc.fontSize(9).font('Helvetica-Bold').fillColor('#4F81BD'); // Smaller font size for headers
+        tableHeaders.forEach((header, i) => {
+            const headerX = startX + columnWidths.slice(0, i).reduce((a, b) => a + b, 0);
+            doc.rect(headerX, startY, columnWidths[i], rowHeight).fill('#EAF3FC');
+            doc.fillColor('#000000').text(header, headerX, startY + 2, {
+                width: columnWidths[i],
+                align: 'center'
+            });
+        });
 
-      doc.moveDown();
+        // Draw a line under the headers
+        doc.moveTo(startX, startY + rowHeight)
+            .lineTo(startX + totalTableWidth, startY + rowHeight)
+            .stroke();
 
-      // Draw table rows
-      salesData.forEach((sale, index) => {
-          const rowY = doc.y + 5; // Starting Y position for each row
-          const rowValues = [
-              sale.orderId,
-              sale.customerId,
-              sale.customerName,
-              sale.orderDate,
-              `RS: ${sale.totalAmount.toFixed(2)}`,
-              sale.paymentMethod,
-              sale.paymentStatus
-          ];
+        // Draw table rows
+        salesData.forEach((sale, index) => {
+            const rowY = doc.y + 5; // Starting Y position for each row
+            const rowValues = [
+                sale.orderId,
+                sale.customerId,
+                sale.customerName,
+                sale.orderDate,
+                `RS: ${sale.totalAmount.toFixed(2)}`,
+                sale.paymentMethod,
+                sale.paymentStatus
+            ];
 
-          // Check for page break
-          if (rowY + rowHeight > doc.page.height - doc.page.margins.bottom) {
-              doc.addPage();
-          }
+            // Check for page break
+            if (rowY + rowHeight > doc.page.height - doc.page.margins.bottom) {
+                doc.addPage();
+            }
 
-          // Fill row background
-          const fillColor = index % 2 === 0 ? '#FFFFFF' : '#F2F2F2'; // Alternate row color
-          doc.rect(startX, rowY - 5, columnWidths.reduce((a, b) => a + b, 0), rowHeight).fill(fillColor);
+            // Fill row background
+            const fillColor = index % 2 === 0 ? '#FFFFFF' : '#F2F2F2'; // Alternate row color
+            doc.rect(startX, rowY - 5, totalTableWidth, rowHeight).fill(fillColor);
 
-          rowValues.forEach((value, i) => {
-              doc.fillColor('#000000').text(value, startX + columnWidths.slice(0, i).reduce((a, b) => a + b, 0), rowY + 5, {
-                  width: columnWidths[i],
-                  align: 'center'
-              });
-          });
+            rowValues.forEach((value, i) => {
+                const valueX = startX + columnWidths.slice(0, i).reduce((a, b) => a + b, 0);
+                doc.fillColor('#000000').fontSize(9).text(value, valueX, rowY + 2, {
+                    width: columnWidths[i],
+                    align: 'center'
+                });
+            });
 
-          // Draw border for each row
-          doc.moveTo(startX, rowY + rowHeight - 5)
-              .lineTo(startX + columnWidths.reduce((a, b) => a + b, 0), rowY + rowHeight - 5)
-              .stroke();
+            // Draw border for each row
+            doc.moveTo(startX, rowY + rowHeight - 5)
+                .lineTo(startX + totalTableWidth, rowY + rowHeight - 5)
+                .stroke();
+        });
 
-          doc.moveDown();
-      });
+        // Draw footer
+        doc.moveDown(2);
+        doc.fontSize(8).fillColor('#555555').text('Generated on: ' + new Date().toLocaleString(), { align: 'center' });
 
-      // Draw footer
-      doc.moveDown(2);
-      doc.fontSize(10).fillColor('#555555').text('Generated on: ' + new Date().toLocaleString(), { align: 'center' });
-
-      // End the document
-      doc.end();
-  } catch (error) {
-      console.error(error);
-      res.status(500).send('An error occurred while exporting sales data to PDF');
-  }
+        // End the document
+        doc.end();
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('An error occurred while exporting sales data to PDF');
+    }
 };
 
 

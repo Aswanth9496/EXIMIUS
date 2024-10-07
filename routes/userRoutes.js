@@ -85,7 +85,7 @@ router.get('/orderList',userAuthentication,orderListController.loadOrderList);
 router.get('/loadProfileOrderDetails/:id',userAuthentication,orderListController.loadOrderDetails);
 router.post('/returnOrder',userAuthentication, orderListController.returnOrder);
 router.post('/cancelOrder',userAuthentication, orderListController.cancelOrder);
-
+router.post('/downloadInvoice',userAuthentication,orderListController.downloadInvoice);
 
 
 // user wallet

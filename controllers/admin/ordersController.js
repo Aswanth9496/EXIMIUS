@@ -25,12 +25,15 @@ const orderDetails = async (req,res)=>{
     try {
 
         const orderId = req.params.id;
+       
         const order = await Orders.findById(orderId).populate('userId').populate('products.productId');
        
 
         if (!order) {
             return res.status(404).render('404', { message: 'Order not found' });
         };
+
+        
 
         res.render('orderDetails',{ order });
         

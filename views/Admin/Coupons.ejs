@@ -132,65 +132,64 @@
               </div>
             <% } %>
           </div>
-
-          <!-- Modal for Adding New Coupon -->
-          <div class="modal fade" id="addCouponModal" tabindex="-1" role="dialog" aria-labelledby="addCouponModalLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title" id="addCouponModalLabel">Add New Coupon</h5>
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                  </button>
-                </div>
-                <div class="modal-body">
-                  <form id="addCouponForm">
-                    <div class="form-group">
+<!-- Modal for Adding New Coupon -->
+<div class="modal fade" id="addCouponModal" tabindex="-1" role="dialog" aria-labelledby="addCouponModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <h5 class="modal-title" id="addCouponModalLabel">Add New Coupon</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+              </button>
+          </div>
+          <div class="modal-body">
+              <form id="addCouponForm">
+                  <div class="form-group">
                       <label for="couponCode">Coupon Code</label>
                       <input type="text" id="couponCode" class="form-control">
-                      <span class="error-message text-danger"></span> <!-- Error message placeholder -->
-                    </div>
+                      <span class="error-message text-danger" id="addCouponCodeError"></span> <!-- Error message placeholder -->
+                  </div>
 
-                    <div class="form-group">
+                  <div class="form-group">
                       <label for="discount">Discount (%)</label>
                       <input type="number" id="discount" class="form-control">
-                      <span class="error-message text-danger"></span> <!-- Error message placeholder -->
-                    </div>
+                      <span class="error-message text-danger" id="addDiscountError"></span> <!-- Error message placeholder -->
+                  </div>
 
-                    <div class="form-group">
+                  <div class="form-group">
                       <label for="maxDiscountAmount">Max Discount Amount</label>
                       <input type="number" id="maxDiscountAmount" class="form-control">
-                      <span class="error-message text-danger"></span> <!-- Error message placeholder -->
-                    </div>
+                      <span class="error-message text-danger" id="addMaxDiscountError"></span> <!-- Error message placeholder -->
+                  </div>
 
-                    <div class="form-group">
+                  <div class="form-group">
                       <label for="minPurchaseAmount">Minimum Purchase Amount</label>
                       <input type="number" id="minPurchaseAmount" class="form-control">
-                      <span class="error-message text-danger"></span> <!-- Error message placeholder -->
-                    </div>
+                      <span class="error-message text-danger" id="addMinPurchaseError"></span> <!-- Error message placeholder -->
+                  </div>
 
-                    <div class="form-group">
+                  <div class="form-group">
                       <label for="expiryDate">Expiry Date</label>
                       <input type="date" id="expiryDate" class="form-control">
-                      <span class="error-message text-danger"></span> <!-- Error message placeholder -->
-                    </div>
+                      <span class="error-message text-danger" id="addExpiryDateError"></span> <!-- Error message placeholder -->
+                  </div>
 
-                    <div class="form-group">
+                  <div class="form-group">
                       <label for="status">Status</label>
                       <select id="status" class="form-control">
-                        <option>Active</option>
-                        <option>Inactive</option>
+                          <option>Active</option>
+                          <option>Inactive</option>
                       </select>
-                    </div>
+                  </div>
 
-                    <button type="submit" class="btn btn-primary">Add Coupon</button>
-                  </form>
-                </div>
-              </div>
-            </div>
+                  <button type="submit" class="btn btn-primary">Add Coupon</button>
+              </form>
           </div>
-          <!-- row-offcanvas ends -->
-           <!-- Modal for Editing Coupon -->
+      </div>
+  </div>
+</div>
+
+<!-- Modal for Editing Coupon -->
 <div class="modal fade" id="editCouponModal" tabindex="-1" role="dialog" aria-labelledby="editCouponModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
       <div class="modal-content">
@@ -207,26 +206,31 @@
                   <div class="form-group">
                       <label for="editCouponCode">Coupon Code</label>
                       <input type="text" id="editCouponCode" class="form-control">
+                      <span class="error-message text-danger" id="editCouponCodeError"></span> <!-- Error message placeholder -->
                   </div>
 
                   <div class="form-group">
                       <label for="editDiscount">Discount (%)</label>
                       <input type="number" id="editDiscount" class="form-control">
+                      <span class="error-message text-danger" id="editDiscountError"></span> <!-- Error message placeholder -->
                   </div>
 
                   <div class="form-group">
                       <label for="editMaxDiscountAmount">Max Discount Amount</label>
                       <input type="number" id="editMaxDiscountAmount" class="form-control">
+                      <span class="error-message text-danger" id="editMaxDiscountError"></span> <!-- Error message placeholder -->
                   </div>
 
                   <div class="form-group">
                       <label for="editMinPurchaseAmount">Minimum Purchase Amount</label>
                       <input type="number" id="editMinPurchaseAmount" class="form-control">
+                      <span class="error-message text-danger" id="editMinPurchaseError"></span> <!-- Error message placeholder -->
                   </div>
 
                   <div class="form-group">
                       <label for="editExpiryDate">Expiry Date</label>
                       <input type="date" id="editExpiryDate" class="form-control">
+                      <span class="error-message text-danger" id="editExpiryDateError"></span> <!-- Error message placeholder -->
                   </div>
 
                   <div class="form-group">
@@ -471,111 +475,98 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+// Function for editing coupon
 document.getElementById('editCouponForm').addEventListener('submit', async function (event) {
-    event.preventDefault(); // Prevent default form submission
+        event.preventDefault(); // Prevent default form submission
 
-    // Clear previous error messages
-    const errorMessages = document.querySelectorAll('.edit-error-message');
-    errorMessages.forEach(span => span.textContent = '');
+        // Clear previous error messages
+        const editErrorMessages = document.querySelectorAll('#editCouponModal .error-message');
+        editErrorMessages.forEach(span => span.textContent = '');
 
-    // Form validation
-    const couponCode = document.getElementById('editCouponCode').value.trim();
-    const discount = document.getElementById('editDiscount').value.trim();
-    const maxDiscountAmount = document.getElementById('editMaxDiscountAmount').value.trim();
-    const minPurchaseAmount = document.getElementById('editMinPurchaseAmount').value.trim();
-    const expirationDate = document.getElementById('editExpiryDate').value;
-    let isValid = true;
+        // Get form values
+        const couponCode = document.getElementById('editCouponCode').value.trim();
+        const discount = document.getElementById('editDiscount').value.trim();
+        const maxDiscountAmount = document.getElementById('editMaxDiscountAmount').value.trim();
+        const minPurchaseAmount = document.getElementById('editMinPurchaseAmount').value.trim();
+        const expirationDate = document.getElementById('editExpiryDate').value;
+        let isValid = true;
 
-    // Validation error message references
-    const couponCodeError = document.querySelector('#editCouponCode + .edit-error-message');
-    const discountError = document.querySelector('#editDiscount + .edit-error-message');
-    const maxDiscountError = document.querySelector('#editMaxDiscountAmount + .edit-error-message');
-    const minPurchaseError = document.querySelector('#editMinPurchaseAmount + .edit-error-message');
-    const expirationDateError = document.querySelector('#editExpiryDate + .edit-error-message');
 
-    // Validation checks
-    if (!couponCode) {
-        couponCodeError.textContent = 'Please enter the coupon code.';
+        const couponCodeRegex = /^[a-zA-Z0-9]+$/;
+        // Validation
+        if (!couponCode) {
+            document.getElementById('editCouponCodeError').textContent = 'Please enter the coupon code.';
+            isValid = false;
+        }else if (!couponCodeRegex.test(couponCode)) {
+          document.getElementById('editCouponCodeError').textContent  = 'Coupon code can only contain letters and numbers.';
         isValid = false;
     }
-
-    if (!discount || isNaN(discount) || discount <= 0 || discount > 100) {
-        discountError.textContent = 'Please enter a valid discount percentage (between 1 and 100).';
-        isValid = false;
-    }
-
-    if (!maxDiscountAmount || isNaN(maxDiscountAmount) || maxDiscountAmount <= 0) {
-        maxDiscountError.textContent = 'Please enter a valid maximum discount amount.';
-        isValid = false;
-    }
-
-    if (!minPurchaseAmount || isNaN(minPurchaseAmount) || minPurchaseAmount <= 0) {
-        minPurchaseError.textContent = 'Please enter a valid minimum purchase amount.';
-        isValid = false;
-    }
-
-    if (!expirationDate) {
-        expirationDateError.textContent = 'Please select an expiration date.';
-        isValid = false;
-    } else {
-        const currentDate = new Date().setHours(0, 0, 0, 0);
-        const selectedDate = new Date(expirationDate).setHours(0, 0, 0, 0);
-
-        if (selectedDate <= currentDate) {
-            expirationDateError.textContent = 'Expiration date must be greater than today\'s date.';
+        if (!discount || isNaN(discount) || discount <= 0 || discount > 100) {
+            document.getElementById('editDiscountError').textContent = 'Please enter a valid discount percentage (between 1 and 100).';
             isValid = false;
         }
-    }
-
-    if (!isValid) {
-        // Stop form submission if validation fails
-        return;
-    }
-
-    const couponId = document.getElementById('editCouponId').value;
-    const couponData = {
-        code: couponCode,
-        discount: parseFloat(discount),
-        maxDiscountAmount: parseFloat(maxDiscountAmount),
-        minPurchaseAmount: parseFloat(minPurchaseAmount),
-        expirationDate: expirationDate,
-        status: document.getElementById('editStatus').value === "true"
-    };
-
-    try {
-        Swal.fire({
-            title: 'Updating coupon...',
-            text: 'Please wait',
-            allowOutsideClick: false,
-            didOpen: () => Swal.showLoading(),
-        });
-
-        const response = await fetch(`/admin/editCoupon/${couponId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(couponData)
-        });
-
-        if (response.ok) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Coupon updated successfully!',
-                showConfirmButton: true,
-                confirmButtonText: 'OK'
-            }).then(() => location.reload());
-        } else {
-            throw new Error('Failed to update coupon');
+        if (!maxDiscountAmount || isNaN(maxDiscountAmount) || maxDiscountAmount <= 0) {
+            document.getElementById('editMaxDiscountError').textContent = 'Please enter a valid maximum discount amount.';
+            isValid = false;
         }
-    } catch (error) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Failed to update coupon. Please try again.',
-            showConfirmButton: true,
-            confirmButtonText: 'OK'
-        });
-    }
-});
+        if (!minPurchaseAmount || isNaN(minPurchaseAmount) || minPurchaseAmount <= 0) {
+            document.getElementById('editMinPurchaseError').textContent = 'Please enter a valid minimum purchase amount.';
+            isValid = false;
+        }
+        if (!expirationDate) {
+            document.getElementById('editExpiryDateError').textContent = 'Please select an expiration date.';
+            isValid = false;
+        } else {
+            const currentDate = new Date().setHours(0, 0, 0, 0);
+            const selectedDate = new Date(expirationDate).setHours(0, 0, 0, 0);
+            if (selectedDate <= currentDate) {
+                document.getElementById('editExpiryDateError').textContent = 'Expiration date must be greater than today\'s date.';
+                isValid = false;
+            }
+        }
+
+        if (!isValid) return; // Stop form submission if validation fails
+
+        // Prepare the coupon data
+        const couponData = {
+            id: document.getElementById('editCouponId').value,
+            code: couponCode,
+            discount: parseFloat(discount),
+            maxDiscountAmount: parseFloat(maxDiscountAmount),
+            minPurchaseAmount: parseFloat(minPurchaseAmount),
+            expirationDate: expirationDate,
+            status: document.getElementById('editStatus').value === "Active"
+        };
+
+        try {
+            const response = await fetch(`/admin/editCoupon/${couponData.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(couponData),
+            });
+
+            if (response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Coupon updated successfully!',
+                }).then(() => {
+                    $('#editCouponModal').modal('hide'); // Hide modal
+                    location.reload(); // Reload the page
+                });
+            } else {
+                throw new Error('Failed to update coupon');
+            }
+        } catch (error) {
+            console.error('Error updating coupon:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Something went wrong!',
+            });
+        }
+    });
 
 
     </script>

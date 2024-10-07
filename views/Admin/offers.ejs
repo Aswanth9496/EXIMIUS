@@ -347,124 +347,115 @@
 </div>
 
 
-
 <script>
-
-document.addEventListener('DOMContentLoaded', function () {
-    // Get all the edit buttons
-    const editButtons = document.querySelectorAll('.edit-offer-btn');
-
-    // Loop through all edit buttons and attach click event listeners
-    editButtons.forEach(button => {
-        button.addEventListener('click', function () {
-            const offerId = this.dataset.id;
-            const offerName = this.dataset.name;
-            const offerDescription = this.dataset.description;
-            const offerDiscount = this.dataset.discount;
-            const offerStatus = this.dataset.status;
-            const offerType = this.dataset.type;
-            const offerProducts = JSON.parse(this.dataset.products || '[]');
-            const offerCategories = JSON.parse(this.dataset.categories || '[]');
-
-            // Set the form fields with the existing offer data
-            document.getElementById('editOfferId').value = offerId;
-            document.getElementById('editOfferName').value = offerName;
-            document.getElementById('editOfferDescription').value = offerDescription;
-            document.getElementById('editOfferDiscount').value = offerDiscount;
-            document.getElementById('editOfferStatus').value = offerStatus;
-
-            const offerDetailsDiv = document.getElementById('editOfferDetails');
-            offerDetailsDiv.innerHTML = '';
-
-            if (offerType === 'product') {
-                let productsHtml = '<label>Applicable Products</label><br>';
-                offerProducts.forEach(product => {
-                    productsHtml += `<input type="checkbox" name="products" value="${product.productId._id}" checked> ${product.productId.name}<br>`;
-                });
-                offerDetailsDiv.innerHTML = productsHtml;
-            } else if (offerType === 'category') {
-                let categoriesHtml = '<label>Applicable Categories</label><br>';
-                offerCategories.forEach(category => {
-                    categoriesHtml += `<input type="checkbox" name="categories" value="${category.categoryId._id}" checked> ${category.categoryId.name}<br>`;
-                });
-                offerDetailsDiv.innerHTML = categoriesHtml;
-            }
-
-            // Show the modal
-            $('#editOfferModal').modal('show');
-        });
-    });
-
-    // Handle form submission with fetch API
-    document.getElementById('editOfferForm').addEventListener('submit', async function (e) {
-        e.preventDefault();
-
-        const offerId = document.getElementById('editOfferId').value;
-        const offerName = document.getElementById('editOfferName').value;
-        const offerDescription = document.getElementById('editOfferDescription').value;
-        const offerDiscount = document.getElementById('editOfferDiscount').value;
-        const offerStatus = document.getElementById('editOfferStatus').value;
-        const selectedProducts = Array.from(document.querySelectorAll('input[name="products"]:checked')).map(el => el.value);
-        const selectedCategories = Array.from(document.querySelectorAll('input[name="categories"]:checked')).map(el => el.value);
-
-        const offerData = {
-            id: offerId,
-            name: offerName,
-            description: offerDescription,
-            discount: offerDiscount,
-            status: offerStatus,
-            products: selectedProducts,
-            categories: selectedCategories
-        };
-
-        try {
-            const response = await fetch(`/admin/updateOffer/${offerId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(offerData)
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-              Swal.fire({
-                    icon: 'success',
-                    title: 'Success',
-                    text: 'Offer updated successfully',
-                    confirmButtonText: 'OK'
-                }).then(() => {
-                    location.reload(); // Reload the page to show updated offer
-                });
-                 } else {
+  document.addEventListener('DOMContentLoaded', function () {
+      // Get all the edit buttons
+      const editButtons = document.querySelectorAll('.edit-offer-btn');
+  
+      // Loop through all edit buttons and attach click event listeners
+      editButtons.forEach(button => {
+          button.addEventListener('click', function () {
+              const offerId = this.dataset.id;
+              const offerName = this.dataset.name;
+              const offerDescription = this.dataset.description;
+              const offerDiscount = this.dataset.discount;
+              const offerStatus = this.dataset.status;
+              const offerType = this.dataset.type;
+              const offerProducts = JSON.parse(this.dataset.products || '[]');
+              const offerCategories = JSON.parse(this.dataset.categories || '[]');
+  
+              // Set the form fields with the existing offer data
+              document.getElementById('editOfferId').value = offerId;
+              document.getElementById('editOfferName').value = offerName;
+              document.getElementById('editOfferDescription').value = offerDescription;
+              document.getElementById('editOfferDiscount').value = offerDiscount;
+              document.getElementById('editOfferStatus').value = offerStatus;
+  
+              const offerDetailsDiv = document.getElementById('editOfferDetails');
+              offerDetailsDiv.innerHTML = '';
+  
+              if (offerType === 'product') {
+                  let productsHtml = '<label>Applicable Products</label><br>';
+                  offerProducts.forEach(product => {
+                      productsHtml += `<input type="checkbox" name="products" value="${product.productId._id}" checked> ${product.productId.name}<br>`;
+                  });
+                  offerDetailsDiv.innerHTML = productsHtml;
+              } else if (offerType === 'category') {
+                  let categoriesHtml = '<label>Applicable Categories</label><br>';
+                  offerCategories.forEach(category => {
+                      categoriesHtml += `<input type="checkbox" name="categories" value="${category.categoryId._id}" checked> ${category.categoryId.name}<br>`;
+                  });
+                  offerDetailsDiv.innerHTML = categoriesHtml;
+              }
+  
+              // Show the modal
+              $('#editOfferModal').modal('show');
+          });
+      });
+  
+      // Handle form submission with fetch API
+      document.getElementById('editOfferForm').addEventListener('submit', async function (e) {
+          e.preventDefault();
+  
+          const offerId = document.getElementById('editOfferId').value;
+          const offerName = document.getElementById('editOfferName').value;
+          const offerDescription = document.getElementById('editOfferDescription').value;
+          const offerDiscount = document.getElementById('editOfferDiscount').value;
+          const offerStatus = document.getElementById('editOfferStatus').value;
+          const selectedProducts = Array.from(document.querySelectorAll('input[name="products"]:checked')).map(el => el.value);
+          const selectedCategories = Array.from(document.querySelectorAll('input[name="categories"]:checked')).map(el => el.value);
+  
+          const offerData = {
+              id: offerId,
+              name: offerName,
+              description: offerDescription,
+              discount: offerDiscount,
+              status: offerStatus,
+              products: selectedProducts,
+              categories: selectedCategories
+          };
+  
+          try {
+              const response = await fetch(`/admin/updateOffer/${offerId}`, {
+                  method: 'PUT',
+                  headers: {
+                      'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify(offerData)
+              });
+  
+              const result = await response.json();
+  
+              if (response.ok) {
                   Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: result.message,
-                    confirmButtonText: 'OK'
-                });
-                          }
-        } catch (error) {
-            console.error('Error updating offer:', error);
-            alert('An error occurred while updating the offer.');
-        }
-    });
-});
-
-
-</script>
-
-
-
-<script>
+                      icon: 'success',
+                      title: 'Success',
+                      text: 'Offer updated successfully',
+                      confirmButtonText: 'OK'
+                  }).then(() => {
+                      location.reload(); // Reload the page to show updated offer
+                  });
+              } else {
+                  Swal.fire({
+                      icon: 'error',
+                      title: 'Error',
+                      text: result.message,
+                      confirmButtonText: 'OK'
+                  });
+              }
+          } catch (error) {
+              console.error('Error updating offer:', error);
+              alert('An error occurred while updating the offer.');
+          }
+      });
+  });
+  
   document.addEventListener('DOMContentLoaded', () => {
       const categoryOfferForm = document.getElementById('categoryOfferForm');
       const productOfferForm = document.getElementById('productOfferForm');
   
       // Fetch and display offers
       const fetchOffers = async () => {
-        
           try {
               const response = await fetch('/admin/offers'); // Update the URL here
               const data = await response.json();
@@ -520,7 +511,7 @@ document.addEventListener('DOMContentLoaded', function () {
       // Category Offer Form Submit
       categoryOfferForm.addEventListener('submit', async function (e) {
           e.preventDefault();
-          
+  
           // Clear previous errors
           clearErrors('categoryOffer');
   
@@ -548,7 +539,7 @@ document.addEventListener('DOMContentLoaded', function () {
       // Product Offer Form Submit
       productOfferForm.addEventListener('submit', async function (e) {
           e.preventDefault();
-          
+  
           // Clear previous error messages
           clearErrors('productOffer');
   
@@ -583,30 +574,40 @@ document.addEventListener('DOMContentLoaded', function () {
           const categories = [...document.querySelectorAll('input[name="categories"]:checked')].map(el => el.value);
           const status = document.getElementById('categoryOfferStatus').value;
   
+          const namePattern = /^[a-zA-Z\s]*$/;
           if (!name) {
               errors.name = 'Offer name is required.';
               hasError = true;
+          } else if (!namePattern.test(name)) {
+              errors.name = 'Offer name can only contain letters and spaces.';
+              hasError = true;
           }
+  
           if (!description) {
-              errors.description = 'Description is required.';
+              errors.description = 'Offer description is required.';
               hasError = true;
           }
-          if (isNaN(discount) || discount <= 0 || discount > 100) {
-              errors.discount = 'Discount must be between 1 and 100.';
+  
+          if (!discount) {
+              errors.discount = 'Offer discount is required.';
+              hasError = true;
+          } else if (isNaN(discount) || discount < 0 || discount > 100) {
+              errors.discount = 'Discount must be a number between 0 and 100.';
               hasError = true;
           }
+  
           if (categories.length === 0) {
               errors.categories = 'At least one category must be selected.';
               hasError = true;
           }
+  
           if (!status) {
-              errors.status = 'Status is required.';
+              errors.status = 'Offer status is required.';
               hasError = true;
           }
   
-          if (hasError) {
-              displayErrors('categoryOffer', errors);
-          }
+          // Show error messages if any
+          showErrors(errors, 'categoryOffer');
   
           return { hasError, data: { name, description, discount, categories, status } };
       }
@@ -621,50 +622,60 @@ document.addEventListener('DOMContentLoaded', function () {
           const products = [...document.querySelectorAll('input[name="products"]:checked')].map(el => el.value);
           const status = document.getElementById('productOfferStatus').value;
   
+          const namePattern = /^[a-zA-Z\s]*$/;
           if (!name) {
               errors.name = 'Offer name is required.';
               hasError = true;
+          } else if (!namePattern.test(name)) {
+              errors.name = 'Offer name can only contain letters and spaces.';
+              hasError = true;
           }
+  
           if (!description) {
-              errors.description = 'Description is required.';
+              errors.description = 'Offer description is required.';
               hasError = true;
           }
-          if (isNaN(discount) || discount <= 0 || discount > 100) {
-              errors.discount = 'Discount must be between 1 and 100.';
+  
+          if (!discount) {
+              errors.discount = 'Offer discount is required.';
+              hasError = true;
+          } else if (isNaN(discount) || discount < 0 || discount > 100) {
+              errors.discount = 'Discount must be a number between 0 and 100.';
               hasError = true;
           }
+  
           if (products.length === 0) {
               errors.products = 'At least one product must be selected.';
               hasError = true;
           }
+  
           if (!status) {
-              errors.status = 'Status is required.';
+              errors.status = 'Offer status is required.';
               hasError = true;
           }
   
-          if (hasError) {
-              displayErrors('productOffer', errors);
-          }
+          // Show error messages if any
+          showErrors(errors, 'productOffer');
   
           return { hasError, data: { name, description, discount, products, status } };
       }
   
-      function displayErrors(formName, errors) {
-          for (const [key, message] of Object.entries(errors)) {
-              const errorElement = document.getElementById(`${formName}${capitalizeFirstLetter(key)}Error`);
+      function showErrors(errors, type) {
+          for (const key in errors) {
+              const errorElement = document.getElementById(`${type}${key.charAt(0).toUpperCase() + key.slice(1)}Error`);
               if (errorElement) {
-                  errorElement.textContent = message;
+                  errorElement.textContent = errors[key];
+                  errorElement.classList.remove('d-none');
               }
           }
       }
   
-      function clearErrors(formName) {
-          const errorElements = document.querySelectorAll(`#${formName} .text-danger`);
-          errorElements.forEach(el => el.textContent = '');
-      }
-  
-      function capitalizeFirstLetter(string) {
-          return string.charAt(0).toUpperCase() + string.slice(1);
+      function clearErrors(type) {
+          const errorElements = document.querySelectorAll(`.${type}-error`);
+          errorElements.forEach(el => {
+              el.textContent = '';
+              el.classList.add('d-none');
+          });
       }
   
       async function submitOffer(url, data, form, modalSelector) {
@@ -678,29 +689,36 @@ document.addEventListener('DOMContentLoaded', function () {
               });
   
               const result = await response.json();
-              console.log('Submission result:', result); // Log the result of the submission
+  
               if (response.ok) {
-                  Swal.fire('Success!', result.message, 'success').then(() => {
-                      $(modalSelector).modal('hide');
-                      form.reset();
-                      location.reload();
-                      fetchOffers(); // Refresh the list of offers
+                  Swal.fire({
+                      icon: 'success',
+                      title: 'Success',
+                      text: 'Offer added successfully',
+                      confirmButtonText: 'OK'
+                  }).then(() => {
+                      $(modalSelector).modal('hide'); // Hide the modal
+                      form.reset(); // Reset the form
                   });
               } else {
-                  Swal.fire('Error!', result.message || 'Failed to submit offer.', 'error');
+                  Swal.fire({
+                      icon: 'error',
+                      title: 'Error',
+                      text: result.message,
+                      confirmButtonText: 'OK'
+                  });
               }
           } catch (error) {
-              console.error('Submission error:', error);
-              Swal.fire('Error!', 'An error occurred while submitting the offer.', 'error');
+              console.error('Error submitting offer:', error);
+              alert('An error occurred while submitting the offer.');
           }
       }
   
-      // Fetch and display offers initially
+      // Fetch offers on page load
       fetchOffers();
   });
   </script>
   
-
 
 
 <script>

@@ -4,41 +4,20 @@
 
 
   <style>
-    .sidebar {
-      width: 250px; /* Fixed width for sidebar */
-      position: fixed; /* Keep sidebar in place */
-      height: 100vh; /* Full height */
-      top: 60px; /* Navbar height */
-      left: 0;
-      overflow-y: auto; /* Enable scrolling */
-      background-color: #f8f9fa; /* Background color */
-    }
-  
-    .main-content {
-      margin-left: 250px; /* Leave space for sidebar */
-      padding: 20px; /* Padding for main content */
-      padding-top: 60px; /* Adjust for navbar */
-      display: flex; /* Use flexbox for layout */
-      flex-direction: column; /* Column layout */
-      height: calc(100vh - 60px); /* Full height minus navbar */
-      width: calc(100vw - 250px); /* Full width minus sidebar width */
-    }
-  
-    .container-fluid {
-      padding-top: 20px; /* Additional spacing */
-      flex-grow: 1; /* Allow container to grow */
-    }
-  
-    .card {
-      flex-grow: 1; /* Expand card to fill space */
-      width: 100%; /* Ensure card takes full width */
-    }
-  
-    .chart-container {
-      height: 100%; /* Full height for chart */
-    }
+    .form-control {
+  border-radius: 5px;
+  border-color: #ced4da;
+}
+
+.btn {
+  background-color: #007bff;
+  border-color: #007bff;
+  padding: 12px 30px;
+  font-size: 16px;
+  border-radius: 30px;
+}
+
   </style>
-  
 
 
 <body>
@@ -74,142 +53,272 @@
           <li class="nav-item"><a class="nav-link" href="/admin/Logout"><span class="menu-title">Logout</span><i class="mdi mdi-logout menu-icon"></i></a></li>
         </ul>
       </nav>
+      
 
-      <!-- Adjusting the column size to increase the width -->
-<div class="main-content d-flex flex-column">
-  <div class="container-fluid py-4 flex-grow-1 d-flex align-items-stretch">
-    <div class="row justify-content-center w-100">
-      <div class="col-lg-12 col-md-12"> <!-- Change this to col-lg-12 to use full width -->
-        <div class="card mb-4 flex-grow-1">
-          <div class="card-header pb-0 d-flex justify-content-between align-items-center">
-            <h6>Dashboard Overview</h6>
-            <div class="form-group mb-0">
-              <label for="timeFrame" class="mr-2">Time Frame:</label>
-              <select id="timeFrame" class="form-select form-select-sm" onchange="updateDashboard()">
-                <option value="yearly" <%= timeFrame === 'yearly' ? 'selected' : '' %>>Yearly</option>
-                <option value="monthly" <%= timeFrame === 'monthly' ? 'selected' : '' %>>Monthly</option>
-                <option value="weekly" <%= timeFrame === 'weekly' ? 'selected' : '' %>>Weekly</option>
-                <option value="daily" <%= timeFrame === 'daily' ? 'selected' : '' %>>Daily</option>
-              </select>
-            </div>
-          </div>
-          <div class="card-body d-flex flex-grow-1">
-            <div class="row flex-grow-1">
-              <div class="col-md-6 mb-4 flex-grow-1">
-                <div class="chart-container h-100">
-                  <canvas id="orderStatusChart"></canvas>
+      <div class="main-panel">
+        <div class="content-wrapper">
+          <div class="container">
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="startDate" class="form-label" style="font-weight: 600;">Start Date:</label>
+                  <input type="date" id="startDate" class="form-control" name="startDate" />
                 </div>
               </div>
-              <div class="col-md-6 mb-4 flex-grow-1">
-                <div class="chart-container h-100">
-                  <canvas id="salesChart"></canvas>
+              <div class="col-md-6">
+                <div class="form-group">
+                  <label for="endDate" class="form-label" style="font-weight: 600;">End Date:</label>
+                  <input type="date" id="endDate" class="form-control" name="endDate" />
+                </div>
+              </div>
+            </div>
+
+            
+
+          
+            <!-- Button to apply the date filter -->
+            <div class="row mb-4">
+              <div class="col-md-6">
+                <button class="btn btn-primary" onclick="updateDashboard()">
+                  Apply Date Filter
+                </button>
+              </div>
+            </div>
+          </div>
+                  
+          <div class="row">
+
+            
+            <!-- Sales Chart -->
+            <div class="col-md-6 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title">Sales Data</h4>
+                  <canvas id="salesChart"></canvas> <!-- Placeholder for the Sales Chart -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Order Status Chart -->
+            <div class="col-md-6 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title">Order Status</h4>
+                  <canvas id="orderStatusChart"></canvas> <!-- Placeholder for the Order Status Chart -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title">Top 10 Selling Products</h4>
+                  <table class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>Product</th>
+                        <th>Sales Count</th>
+                      </tr>
+                    </thead>
+                    <tbody id="topProductsTable">
+                      <% salesCountByProduct.forEach(function(Product) { %>
+                        <tr>
+                          <td><%= Product.productName %></td>
+                          <td><%= Product.salesCount %></td>
+                        </tr>
+                      <% }); %>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- Top 10 Selling Brands -->
+            <div class="col-md-6 grid-margin stretch-card">
+              <div class="card">
+                <div class="card-body">
+                  <h4 class="card-title">Top 10 Selling Brands</h4>
+                  <table class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>Brand</th>
+                        <th>Sales Count</th>
+                      </tr>
+                    </thead>
+                    <tbody id="topBrandsTable">
+                      <% topSellingBrands.forEach(function(brand) { %>
+                        <tr>
+                          <td><%= brand.brandName %></td>
+                          <td><%= brand.salesCount %></td>
+                        </tr>
+                      <% }); %>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
           </div>
         </div>
+        <!-- content-wrapper ends -->
+
+        </div>
+        <!-- content-wrapper ends -->
+        <footer class="footer">
+          <div class="container-fluid clearfix">
+            <span class="text-muted d-block text-center text-sm-left d-sm-inline-block">Admin Dashboard</span>
+          </div>
+        </footer>
       </div>
-    </div>
-  </div>
-</div> <!-- End of main content -->
 
 
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-      <script>
-          // Data initialization and chart generation for order status
-          let orderStatusData = JSON.parse(`<%- JSON.stringify(orderStatusData) %>`);
-          let salesData = JSON.parse(`<%- JSON.stringify(salesData) %>`);
 
-          function generateOrderStatusChart() {
-              const ctx = document.getElementById('orderStatusChart').getContext('2d');
-              const orderStatusLabels = orderStatusData.map(order => order.status);
-              const orderStatusCounts = orderStatusData.map(order => order.count);
 
-              new Chart(ctx, {
-                  type: 'pie',
-                  data: {
-                      labels: orderStatusLabels,
-                      datasets: [{
-                          label: 'Order Status',
-                          data: orderStatusCounts,
-                          backgroundColor: ['rgba(255, 99, 132, 0.7)', 'rgba(54, 162, 235, 0.7)', 'rgba(255, 206, 86, 0.7)'],
-                          borderWidth: 1,
-                      }],
-                  },
-                  options: {
-                      responsive: true,
-                      plugins: {
-                          legend: { position: 'top' },
-                          tooltip: {
-                              callbacks: {
-                                  label: function(context) {
-                                      return `${context.label}: ${context.raw}`;
-                                  }
-                              }
-                          }
-                      }
-                  }
-              });
-          }
+<script>
 
-          // Data initialization and chart generation for sales
-          function generateSalesChart() {
-              const ctx = document.getElementById('salesChart').getContext('2d');
-              const salesLabels = salesData.map(sale => sale.date);
-              const salesAmounts = salesData.map(sale => sale.total);
+// Data initialization and chart generation for order status
+let orderStatusData = JSON.parse(`<%- JSON.stringify(orderStatusData) %>`);
+let salesData = JSON.parse(`<%- JSON.stringify(salesCountByProduct) %>`);
 
-              new Chart(ctx, {
-                  type: 'line',
-                  data: {
-                      labels: salesLabels,
-                      datasets: [{
-                          label: 'Sales',
-                          data: salesAmounts,
-                          backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                          borderColor: 'rgba(75, 192, 192, 1)',
-                          borderWidth: 2,
-                      }],
-                  },
-                  options: {
-                      responsive: true,
-                      scales: {
-                          y: { beginAtZero: true },
-                          x: { display: true }
-                      },
-                      plugins: {
-                          legend: { position: 'top' },
-                          tooltip: {
-                              callbacks: {
-                                  label: function(context) {
-                                      return `Sales: ${context.raw}`;
-                                  }
-                              }
-                          }
-                      }
-                  }
-              });
-          }
+// Define global variables for charts
+let orderStatusChart, salesChart, brandsChart;
 
-          // Function to update dashboard based on selected timeframe
-          async function updateDashboard() {
-              const timeFrame = document.getElementById('timeFrame').value;
+function generateOrderStatusChart() {
+    const ctx = document.getElementById('orderStatusChart').getContext('2d');
+    const orderStatusLabels = Object.keys(orderStatusData);
+    const orderStatusCounts = Object.values(orderStatusData);
 
-              const response = await fetch(`/dashboard/update?timeFrame=${timeFrame}`);
-              const data = await response.json();
+    orderStatusChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: orderStatusLabels,
+            datasets: [{
+                label: 'Order Status',
+                data: orderStatusCounts,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.7)', 'rgba(54, 162, 235, 0.7)', 'rgba(255, 206, 86, 0.7)',
+                    'rgba(75, 192, 192, 0.7)', 'rgba(153, 102, 255, 0.7)', 'rgba(255, 159, 64, 0.7)',
+                    'rgba(0, 128, 0, 0.7)', 'rgba(255, 165, 0, 0.7)'
+                ],
+                borderWidth: 1,
+            }],
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' },
+                tooltip: { callbacks: { label: context => `${context.label}: ${context.raw}` }}
+            }
+        }
+    });
+}
 
-              orderStatusData = data.orderStatus;
-              salesData = data.salesData;
+function generateSalesChart() {
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    const salesLabels = salesData.map(sale => sale.productName);
+    const salesAmounts = salesData.map(sale => sale.salesCount);
 
-              generateOrderStatusChart();
-              generateSalesChart();
-          }
+    salesChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: salesLabels,
+            datasets: [{
+                label: 'Sales Count',
+                data: salesAmounts,
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 2,
+            }],
+        },
+        options: {
+            responsive: true,
+            scales: { y: { beginAtZero: true }, x: { display: true }},
+            plugins: {
+                legend: { position: 'top' },
+                tooltip: { callbacks: { label: context => `Sales: ${context.raw}` }}
+            }
+        }
+    });
+}
 
-          document.addEventListener('DOMContentLoaded', () => {
-              generateOrderStatusChart();
-              generateSalesChart();
-          });
-      </script>
+document.addEventListener('DOMContentLoaded', () => {
+    generateOrderStatusChart();
+    generateSalesChart();
+});
+
+async function updateDashboard() {
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+
+    if (!startDate || !endDate) {
+        swal("Error!", "Please select both start and end dates.", "error");
+        return;
+    }
+
+    try {
+        const response = await fetch(`/admin/dashbord?startDate=${startDate}&endDate=${endDate}`, {
+            method: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+        });
+
+        if (!response.ok) throw new Error("Error fetching dashboard data.");
+
+        const data = await response.json();
+        updateOrderStatusChart(data.orderStatus);
+        updateSalesChart(data.salesCountByProduct);
+        updateTopBrandsChart(data.topSellingBrands);
+
+    } catch (error) {
+        console.error('Error updating dashboard:', error);
+        swal("Error!", "Failed to update the dashboard.", "error");
+    }
+}
+
+function updateOrderStatusChart(orderStatusData) {
+    if (orderStatusChart) {
+        orderStatusChart.data.datasets[0].data = [
+            orderStatusData.pending,
+            orderStatusData.shipped,
+            orderStatusData.delivered,
+            orderStatusData.cancelled,
+            orderStatusData.returned
+        ];
+        orderStatusChart.update();
+    }
+}
+
+function updateSalesChart(salesData) {
+    if (salesChart) {
+        const labels = salesData.map(item => item.productName);
+        const salesCount = salesData.map(item => item.salesCount);
+
+        salesChart.data.labels = labels;
+        salesChart.data.datasets[0].data = salesCount;
+        salesChart.update();
+    }
+}
+
+function updateTopBrandsChart(brandsData) {
+    if (brandsChart) {
+        const labels = brandsData.map(item => item.brandName);
+        const salesCount = brandsData.map(item => item.salesCount);
+
+        brandsChart.data.labels = labels;
+        brandsChart.data.datasets[0].data = salesCount;
+        brandsChart.update();
+    }
+}
+
+
+</script>
+
+
+
+<!-- Include SweetAlert -->
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
       <%- include('../Layout/admin/footer.ejs') -%>
     </div>

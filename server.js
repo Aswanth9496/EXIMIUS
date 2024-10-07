@@ -7,11 +7,19 @@ const session = require('express-session');
 const passport = require('passport');
 const flash = require('connect-flash');
 const nocache = require('nocache');
+const config = require('./config/config')
 
 
 
 const app = express();
 
+// Express session setup
+app.use(session({
+    secret: config.sessionSecret,
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false }
+}));
 app.use(nocache());
 
 // Set 'public' as the static folder
@@ -23,13 +31,6 @@ app.use(express.static(path.join(__dirname, './public')));
 // Morgan for logging
 app.use(morgan('dev'));
 
-// Express session setup
-app.use(session({
-    secret: 'yourSecretKey',
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false }
-}));
 
 // Passport middleware
 app.use(passport.initialize());
@@ -57,6 +58,19 @@ dbConnect();
 // Use routes
 app.use('/', userRoutes);
 app.use('/admin', adminRoutes);
+
+app.use((err, req, res, next) => {
+    console.error(err.stack); // Log the error for debugging
+    
+    // Set a default error message and status code
+    const status = err.status || 500;
+    const message = status === 404 ? err.message || 'Oops! The page you’re looking for doesn’t exist.' : 'Something went wrong! Please try again later.';
+
+    // Render the error view with the dynamic status and message
+    res.status(status).render('error', { status, message });
+});
+
+
 
 
 // Start server

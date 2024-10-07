@@ -56,77 +56,152 @@ const verifyadmin = async (req, res) => {
 
 
 
+
 const loadDashboard = async (req, res) => {
     try {
-        const { timeFrame = 'yearly' } = req.query; // Default time frame is yearly
-
+        // Extract start and end dates from query parameters
+        const { startDate, endDate } = req.query;
+        
         let parsedStartDate, parsedEndDate;
         const now = new Date();
 
-        // Determine the start and end dates based on the selected time frame
-        switch (timeFrame) {
-            case 'yearly':
-                parsedStartDate = new Date(now.getFullYear(), 0, 1); // Start of the year
-                parsedEndDate = new Date(now.getFullYear(), 11, 31); // End of the year
-                break;
-            case 'monthly':
-                parsedStartDate = new Date(now.getFullYear(), now.getMonth(), 1); // Start of the month
-                parsedEndDate = new Date(now.getFullYear(), now.getMonth() + 1, 0); // End of the month
-                break;
-            case 'weekly':
-                const firstDayOfWeek = now.getDate() - now.getDay(); // Start of the week (Sunday)
-                parsedStartDate = new Date(now.setDate(firstDayOfWeek));
-                parsedEndDate = new Date(now.setDate(firstDayOfWeek + 6)); // End of the week (Saturday)
-                parsedEndDate.setHours(23, 59, 59, 999);
-                break;
-            case 'daily':
-                parsedStartDate = new Date(now.setHours(0, 0, 0, 0)); // Start of today
-                parsedEndDate = new Date(now.setHours(23, 59, 59, 999)); // End of today
-                break;
-            default:
-                throw new Error("Invalid time frame");
+        // Validate and parse the provided start and end dates
+        if (startDate) {
+            parsedStartDate = new Date(startDate);
+            if (isNaN(parsedStartDate.getTime())) {
+                return res.status(400).send('Invalid start date format.');
+            }
+        } else {
+            parsedStartDate = new Date(now.getFullYear(), 0, 1); // Default to January 1st of the current year
+        }
+
+        if (endDate) {
+            parsedEndDate = new Date(endDate);
+            if (isNaN(parsedEndDate.getTime())) {
+                return res.status(400).send('Invalid end date format.');
+            }
+        } else {
+            parsedEndDate = new Date(now.getFullYear(), 11, 31); // Default to December 31st of the current year
+        }
+
+        // Check if the end date is before the start date
+        if (parsedEndDate < parsedStartDate) {
+            return res.status(400).send('End date must be greater than or equal to start date.');
         }
 
         // Fetch order status data and format it
         const orderStatusData = await Order.aggregate([
-            { $match: { orderDate: { $gte: parsedStartDate, $lte: parsedEndDate } } },
+            { 
+                $match: { 
+                    orderDate: { $gte: parsedStartDate, $lte: parsedEndDate } 
+                } 
+            },
+            { $unwind: "$products" },
             { 
                 $group: { 
-                    _id: "$status", 
+                    _id: "$products.status",  
                     total: { $sum: 1 } 
                 } 
             }
         ]);
 
-        // Transform the order status data into a more readable format
-        const formattedOrderStatusData = {};
+        const formattedOrderStatusData = { returned: 0, delivered: 0, cancelled: 0, pending: 0, shipped: 0 };
         orderStatusData.forEach(order => {
-            formattedOrderStatusData[order._id] = order.total; // e.g., { "Cancelled": 20, "Returned": 12, "Delivered": 5 }
+            const status = order._id.toLowerCase(); 
+            if (formattedOrderStatusData.hasOwnProperty(status)) {
+                formattedOrderStatusData[status] = order.total;
+            }
         });
 
-        // Fetch sales data (total sales amount for the time frame)
-        const salesData = await Order.aggregate([
+        const salesCountByProduct = await Order.aggregate([
             { $match: { orderDate: { $gte: parsedStartDate, $lte: parsedEndDate } } },
-            { $group: { _id: null, totalSales: { $sum: "$totalAmount" } } }
+            { $unwind: "$products" },
+            { 
+                $lookup: {
+                    from: "products",
+                    localField: "products.productId",
+                    foreignField: "_id",
+                    as: "productDetails"
+                }
+            },
+            { $unwind: "$productDetails" },
+            { 
+                $group: { 
+                    _id: "$productDetails.name",
+                    totalSales: { $sum: "$products.quantity" } 
+                } 
+            },
+            { $sort: { totalSales: -1 } },
+            { $limit: 10 }
         ]);
 
-        console.log(formattedOrderStatusData, "Formatted Order Status Data");
+        const formattedSalesCountByProduct = salesCountByProduct.map(product => ({
+            productName: product._id,
+            salesCount: product.totalSales
+        }));
 
-        // Check if request is for JSON (XHR)
-        if (req.xhr) {
-            return res.json({ orderStatus: formattedOrderStatusData, sales: salesData });
+        const topSellingBrands = await Order.aggregate([
+            { $match: { orderDate: { $gte: parsedStartDate, $lte: parsedEndDate } } },
+            { $unwind: "$products" },
+            { 
+                $lookup: {
+                    from: "products",
+                    localField: "products.productId",
+                    foreignField: "_id",
+                    as: "productDetails"
+                }
+            },
+            { $unwind: "$productDetails" },
+            { 
+                $lookup: {
+                    from: "brands",
+                    localField: "productDetails.brand",
+                    foreignField: "_id",
+                    as: "brandDetails"
+                }
+            },
+            { $unwind: "$brandDetails" },
+            { 
+                $group: { 
+                    _id: "$brandDetails.BrandName",
+                    totalSales: { $sum: "$products.quantity" } 
+                } 
+            },
+            { $sort: { totalSales: -1 } },
+            { $limit: 10 }
+        ]);
+
+        const formattedTopSellingBrands = topSellingBrands.map(brand => ({
+            brandName: brand._id,
+            salesCount: brand.totalSales
+        }));
+
+        // Check if request expects JSON response (for fetch)
+        if (req.headers.accept && req.headers.accept.includes('application/json')) {
+           
+
+            return res.json({
+                orderStatus: formattedOrderStatusData,
+                salesCountByProduct: formattedSalesCountByProduct,
+                topSellingBrands: formattedTopSellingBrands,
+                timeFrame: { startDate, endDate }
+            });
         }
-          
-        
-        
-        // Render the dashboard with the fetched data
-        res.render('dashbord', { orderStatusData: formattedOrderStatusData, salesData, timeFrame });
+
+        // Render the dashboard with the fetched data for non-JSON requests
+        res.render('dashbord', {
+            orderStatusData: formattedOrderStatusData,
+            salesCountByProduct: formattedSalesCountByProduct,
+            topSellingBrands: formattedTopSellingBrands,
+            timeFrame: { startDate, endDate }
+        });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).send('Server Error');
+        console.error("Dashboard data fetch error:", error);
+        res.status(500).send('Failed to load dashboard data. Please try again.');
     }
 };
+
 
 
 
