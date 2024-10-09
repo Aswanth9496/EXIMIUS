@@ -3,6 +3,8 @@ const router = express.Router();
 const passport = require('passport');
 
 
+
+
 const userAuthentication = require('../Middlewares/userAuthentication');
 
 
@@ -39,6 +41,7 @@ router.get('/OTP',UserLoginCheck, userRegistration.lodeOTPpage);
 router.post('/OTP', userRegistration.verifiyingOTP);
 router.post('/resendOTP',userRegistration.resendOTP);
 router.get('/otp-remaining-time',userRegistration.remainingtime);
+
 
 // Google OAuth routes
 router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));

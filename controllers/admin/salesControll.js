@@ -5,16 +5,13 @@ const ExcelJS = require('exceljs');
 
 
 
-
 const loadSales = async (req, res) => {
-
   try {
     const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 5) || 5;
-
+    const limit = parseInt(req.query.limit, 10) || 5;
 
     // Validate page and limit
-    if (page < 1 || limit < 1 || limit > 100) { // Added upper limit for pagination
+    if (page < 1 || limit < 1 || limit > 100) {
       return res.status(400).send('Invalid page or limit. Ensure limit is between 1 and 100.');
     }
 
@@ -26,18 +23,18 @@ const loadSales = async (req, res) => {
       'products.status': { $nin: ['Cancelled', 'Returned'] }
     };
 
-    const totalOrdersCount = await orders.countDocuments(query);
-    const salesData = await orders.find(query).skip(skip).limit(limit);
-
-    console.log(`Total filtered sales: ${salesData.length}`);
-
-    const totalDiscount = salesData.reduce((sum, order) => sum + (order.discountAmount || 0), 0);
-    const totalSalesAmount = salesData.reduce((sum, order) => {
+    // Get all sales data to calculate totalDiscount and totalSalesAmount
+    const allSalesData = await orders.find(query);
+    const totalDiscount = allSalesData.reduce((sum, order) => sum + (order.discountAmount || 0), 0);
+    const totalSalesAmount = allSalesData.reduce((sum, order) => {
       return sum + order.products.reduce((total, product) => {
         return product.status !== 'Cancelled' && product.status !== 'Returned' ? total + product.totalPrice : total;
       }, 0);
     }, 0);
 
+    // Paginate the sales data
+    const salesData = await orders.find(query).skip(skip).limit(limit);
+    const totalOrdersCount = allSalesData.length;
     const totalPages = Math.ceil(totalOrdersCount / limit);
 
     res.render('sales', {
@@ -60,14 +57,12 @@ const loadSales = async (req, res) => {
 
 
 
-
 const filterSales = async (req, res) => {
   try {
-   
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 5;
 
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-
+    // Validate page and limit
     if (page < 1 || limit < 1) {
       console.error('Invalid page or limit');
       return res.status(400).send('Invalid page or limit');
@@ -81,8 +76,6 @@ const filterSales = async (req, res) => {
       console.error('Invalid startDate:', req.query.startDate);
       return res.status(400).send('Invalid startDate');
     }
-
-   
 
     let startDate;
     const endDate = new Date();
@@ -111,8 +104,6 @@ const filterSales = async (req, res) => {
       }
     }
 
-    const skip = (page - 1) * limit;
-
     const query = {
       paymentStatus: 'Success',
       'products.status': { $nin: ['Cancelled', 'Returned'] }
@@ -125,24 +116,22 @@ const filterSales = async (req, res) => {
       };
     }
 
-    
-
-    const totalOrdersCount = await orders.countDocuments(query);
-    const salesData = await orders.find(query).skip(skip).limit(limit);
-
-    console.log(`Total filtered sales: ${salesData.length}`);
-
-    const totalDiscount = salesData.reduce((sum, order) => sum + (order.discountAmount || 0), 0);
-    const totalSalesAmount = salesData.reduce((sum, order) => {
+    // Fetch all matching sales data for calculating totals
+    const allFilteredSalesData = await orders.find(query);
+    const totalDiscount = allFilteredSalesData.reduce((sum, order) => sum + (order.discountAmount || 0), 0);
+    const totalSalesAmount = allFilteredSalesData.reduce((sum, order) => {
       const validAmount = order.products.reduce((total, product) => {
         return product.status !== 'Cancelled' && product.status !== 'Returned' ? total + product.totalPrice : total;
       }, 0);
       return sum + validAmount;
     }, 0);
 
+    // Apply pagination
+    const totalOrdersCount = allFilteredSalesData.length;
+    const salesData = await orders.find(query).skip((page - 1) * limit).limit(limit);
     const totalPages = Math.ceil(totalOrdersCount / limit);
 
-    res.json( {
+    res.json({
       totalOrders: totalOrdersCount,
       totalDiscount,
       totalSalesAmount,
