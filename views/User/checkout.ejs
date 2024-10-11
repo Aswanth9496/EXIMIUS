@@ -168,18 +168,50 @@
         color: #0056b3;
     }
     .cart-detail {
-border: 1px solid #ddd;
-padding: 20px;
-border-radius: 8px;
-background-color: #f9f9f9;
-box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cart-detail {
+    border: 1px solid #ddd;
+    padding: 20px;
+    padding-bottom: 40px; /* Extra space for last item */
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    height: 380px; /* Increase as needed */
+    overflow-y: auto; /* Allows scrolling if content still overflows */
 }
 
 .cart-detail h2 {
-font-size: 24px;
-margin-bottom: 15px;
-color: #333;
+    font-size: 24px;
+    margin-bottom: 15px;
+    color: #333;
 }
+
+.cart-detail .form-group {
+    margin-bottom: 20px;
+}
+
+.cart-detail .radio label {
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+}
+
+.cart-detail .radio input[type="radio"] {
+    margin-right: 10px;
+}
+
+#codWarning {
+    color: #e74c3c; /* A noticeable red for warnings */
+    font-size: 14px;
+    margin-top: 4px;
+}
+
 
 .cart-summary {
 list-style-type: none;
@@ -599,6 +631,16 @@ font-weight: bold;
                                         </div>
                                     </div>
                                 </div>
+                                <div class="form-group">
+                                    <div class="col-md-12">
+                                        <div class="radio mb-3">
+                                            <label style="font-weight: 600;">
+                                                <input type="radio" name="optradio" value="wallet"> 
+                                                <span style="margin-left: 8px;">Wallet Payment</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
                         
                                 <div class="form-group">
                                     <div class="col-md-12">
@@ -614,8 +656,12 @@ font-weight: bold;
                                     </div>
                                 </div>
                         
+                                <!-- Wallet Payment option -->
+                               
+                        
                             </div>
                         </div>
+                        
                         </div>
                         <div class="row">
                             <div class="col-md-12 text-center">
@@ -920,91 +966,90 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('DOMContentLoaded', () => {
     // Handling Place Order logic
     const placeOrderBtn = document.getElementById('placeOrderBtn');
-    const rzpButton = document.getElementById('rzp-button1');
     
     placeOrderBtn.addEventListener('click', async () => {
         const selectedAddress = document.querySelector('input[name="address"]:checked');
         const paymentMethod = document.querySelector('input[name="optradio"]:checked');
-         const couponCode = document.getElementById('coupon-code').value.trim(); 
+        const couponCode = document.getElementById('coupon-code').value.trim(); 
 
         if (!selectedAddress) {
             alert('Please select an address.');
             return;
         }
-        
+
         if (!paymentMethod) {
             alert('Please select a payment method.');
             return;
         }
-        
+
         const addressId = selectedAddress.value;
         const paymentMethodValue = paymentMethod.value;
-        
+
         if (paymentMethodValue === 'razorpay') {
-    try {
-        const totalAmount = document.getElementById('totalAmount').innerText;
+            try {
+                const totalAmount = document.getElementById('totalAmount').innerText;
 
-        // Fetch Razorpay order details from server
-        const orderResponse = await fetch(`/razorpayCheckout?couponCode=${couponCode}`);
-        let data = await orderResponse.json();
+                // Fetch Razorpay order details from server
+                const orderResponse = await fetch(`/razorpayCheckout?couponCode=${couponCode}`);
+                let data = await orderResponse.json();
 
-        console.log('Razorpay Order Data:', data); // Log the data received
+                console.log('Razorpay Order Data:', data); // Log the data received
 
-        const options = {
-            key: data.keyId,
-            amount: data.totalAmount * 100, // Razorpay expects amount in paise
-            currency: "INR",
-            name: "Your Store Name",
-            description: "Test Transaction",
-            order_id: data.razorpayOrderId,
-            handler: function (response) {
-                console.log('Payment handler triggered'); // Added log to ensure handler is called
-                console.log('Razorpay Response:', response); // Log Razorpay response
+                const options = {
+                    key: data.keyId,
+                    amount: data.totalAmount * 100, // Razorpay expects amount in paise
+                    currency: "INR",
+                    name: "Your Store Name",
+                    description: "Test Transaction",
+                    order_id: data.razorpayOrderId,
+                    handler: function (response) {
+                        console.log('Payment handler triggered'); // Added log to ensure handler is called
+                        console.log('Razorpay Response:', response); // Log Razorpay response
 
-                const paymentDetails = {
-                    razorpay_payment_id: response.razorpay_payment_id,
-                    razorpay_order_id: response.razorpay_order_id,
-                    razorpay_signature: response.razorpay_signature,
-                    addressId : addressId,
-                    totalAmount: totalAmount, // Total amount from DOM,
-                    couponCode : couponCode
+                        const paymentDetails = {
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_signature: response.razorpay_signature,
+                            addressId: addressId,
+                            totalAmount: totalAmount, // Total amount from DOM,
+                            couponCode: couponCode
+                        };
+
+                        console.log('Payment Details:', paymentDetails); // Log payment details
+
+                        // Call the success route to place the order after payment
+                        fetch('/placeOrderAfterPayment', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(paymentDetails)
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                console.log('Order successfully placed');
+                                window.location.href = '/orderConfirmation';
+                            } else {
+                                console.error('Failed to place order:', data);
+                                alert('Order could not be placed. Please try again.');
+                            }
+                        })
+                        .catch(error => console.error('Error placing order:', error));
+                    },
+                    "prefill": {
+                        "name": "Customer Name",
+                        "email": "customer@example.com",
+                        "contact": "9999999999"
+                    },
+                    "theme": { "color": "#F37254" }
                 };
 
-                console.log('Payment Details:', paymentDetails); // Log payment details
+                console.log('Initializing Razorpay with options:', options); // Log Razorpay options
 
-                // Call the success route to place the order after payment
-                fetch('/placeOrderAfterPayment', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(paymentDetails)
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        console.log('Order successfully placed');
-                        window.location.href = '/orderConfirmation';
-                    } else {
-                        console.error('Failed to place order:', data);
-                        alert('Order could not be placed. Please try again.');
-                    }
-                })
-                .catch(error => console.error('Error placing order:', error));
-            },
-            "prefill": {
-                "name": "Customer Name",
-                "email": "customer@example.com",
-                "contact": "9999999999"
-            },
-            "theme": { "color": "#F37254" }
-        };
+                const rzp1 = new Razorpay(options);
+                rzp1.open();
 
-        console.log('Initializing Razorpay with options:', options); // Log Razorpay options
-
-        const rzp1 = new Razorpay(options);
-        rzp1.open();
-
-          // Handle payment failure
-          rzp1.on('payment.failed', async (response) => {
+                // Handle payment failure
+                rzp1.on('payment.failed', async (response) => {
                     console.error('Payment failed:', response); // Log payment failure
 
                     // Call the route to place order with payment status as 'Failed'
@@ -1024,17 +1069,43 @@ document.addEventListener('DOMContentLoaded', () => {
                     const result = await failureResponse.json();
                     if (result.success) {
                         console.log('Order placed with failed payment status');
-                         window.location.href = '/orderConfirmation'
+                        window.location.href = '/orderConfirmation'
                     } else {
                         alert('Order could not be placed due to payment failure. Please try again.');
                     }
                 });
 
-    } catch (error) {
-        console.error('Error initializing Razorpay payment:', error);
-        alert('Failed to initialize Razorpay payment.');
-    }
- } else {
+            } catch (error) {
+                console.error('Error initializing Razorpay payment:', error);
+                alert('Failed to initialize Razorpay payment.');
+            }
+        } else if (paymentMethodValue === 'wallet') {
+            try {
+                const response = await fetch('/placeOrder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        addressId: addressId,
+                        paymentMethod: paymentMethodValue,
+                        couponCode: couponCode
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    window.location.href = '/orderConfirmation';
+                }  else {
+                    alert(result.message === 'Insufficient wallet balance' 
+                    ? 'Insufficient wallet balance' 
+                    : 'Order failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error placing order with wallet payment:', error);
+                alert('Order could not be placed. Please try again.');
+            }
+        } else {
+            // Handle other payment methods...
             const response = await fetch('/placeOrder', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1044,6 +1115,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     couponCode: couponCode
                 })
             });
+
             const result = await response.json();
             if (result.success) {
                 window.location.href = '/orderConfirmation';
@@ -1052,8 +1124,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
-
-    
 
     // Coupon Application Logic
     const couponForm = document.getElementById('couponForm');

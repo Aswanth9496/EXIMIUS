@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const passport = require('passport');
-
+const User = require('../models/userModel');
 
 
 
@@ -43,13 +43,51 @@ router.post('/resendOTP',userRegistration.resendOTP);
 router.get('/otp-remaining-time',userRegistration.remainingtime);
 
 
-// Google OAuth routes
 router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-router.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/login', failureFlash: true }),
-    (req, res) => {
-        res.redirect('/');
+
+router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+router.get('/auth/google/callback', 
+    passport.authenticate('google', { failureRedirect: '/login', failureFlash: true }),
+    async (req, res) => {
+        // Successful authentication
+        const { email, displayName, id } = req.user;
+
+        // Check if a user with the email already exists
+        const existingUserByEmail = await User.findOne({ email: email });
+
+        if (existingUserByEmail) {
+            // Create a session for the existing user
+            req.session.user = {
+                id: existingUserByEmail._id,
+                username: existingUserByEmail.name
+            };
+            return res.redirect('/'); // Redirect to the home page
+        }
+
+        // If there's no existing user, create a new user
+        const newUser = new User({
+            name: displayName,
+            email: email,
+            googleId: id,
+            verified: true
+        });
+
+        await newUser.save();
+
+        // Create a session for the new user
+        req.session.user = {
+            id: newUser._id,
+            username: newUser.name
+        };
+
+        return res.redirect('/'); // Redirect to the home page
     }
 );
+
+
+
+
 
 
 // store
@@ -113,6 +151,6 @@ router.post('/retrypayment',userAuthentication,checkoutController.retryPayment);
 router.post('/verifyRetryPayment',userAuthentication,checkoutController.verifyRetryPayment);
 
 
-router.get('*', (req, res) => res.render('error', {status: 404, message: ''}))
+router.use('*', (req, res,next) => res.render('error', {status: 404, message: ''}))
 
 module.exports = router;

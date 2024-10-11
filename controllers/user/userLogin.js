@@ -9,41 +9,37 @@ const mongoose = require('mongoose');
 
 
 
-
-
+// Passport Strategy for Google
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL: '/auth/google/callback'
 }, async (accessToken, refreshToken, profile, done) => {
     try {
-        // Check if the user already exists
-        const existingUser = await User.findOne({ googleId: profile.id });
+        // Get email from the profile
+        const email = profile.emails[0].value;
 
-        if (existingUser) {
-            return done(null, existingUser);
+        // Check if a user with the email already exists
+        const existingUserByEmail = await User.findOne({ email: email });
+
+        if (existingUserByEmail) {
+            // User exists, proceed and create session
+            return done(null, existingUserByEmail);
         }
 
-        // If user doesn't exist, create a new one
-        const newUser = new User({
-            name: profile.displayName,
-            email: profile.emails[0].value,
-            googleId: profile.id,
-            verified: true
-        });
-        
-
-        await newUser.save();
-        return done(null, newUser);
+        // If no user exists, return the profile for further processing
+        return done(null, profile);
     } catch (err) {
         return done(err, null);
     }
 }));
 
+// Serialize user into session
 passport.serializeUser((user, done) => {
     done(null, user.id);
 });
 
+// Deserialize user from session
 passport.deserializeUser(async (id, done) => {
     try {
         const user = await User.findById(id);
@@ -52,26 +48,6 @@ passport.deserializeUser(async (id, done) => {
         done(err, null);
     }
 });
-
-
-
-
-// Create a new cart
-const createCart = async (userId) => {
-    try {
-        const newCart = new Cart({
-            user: userId,
-            products: [],
-            totalPrice: 0
-        });
-        await newCart.save();
-
-    } catch (error) {
-        console.log(error);
-        
-    }
-    
-};
 
 
 // Load user login page

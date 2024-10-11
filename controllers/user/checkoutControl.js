@@ -7,7 +7,7 @@ const Product =require("../../models/productsModel");
 const Coupon  = require('../../models/couponModel');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
-
+const Wallet = require('../../models/walletModel')
 
 
 
@@ -175,6 +175,24 @@ const placeOrder = async (req, res) => {
         totalAmount -= totalDiscount;
         totalAmount = Math.round(totalAmount * 100) / 100; // Round totalAmount
 
+        // Check if the payment method is 'wallet' and validate wallet balance
+        if (paymentMethod === 'wallet') {
+            const userWallet = await Wallet.findOne({ user_id: userId });
+            if (!userWallet || userWallet.balance < totalAmount) {
+                return res.status(400).json({ success: false, message: 'Insufficient wallet balance.' });
+            }
+
+            // Deduct the amount from the wallet
+            userWallet.balance -= totalAmount;
+            await userWallet.save();
+
+            // Set payment status to Success for wallet payments
+            paymentStatus = 'Success'; // Set payment status to Success
+        } else {
+            // For other payment methods, keep payment status as Pending
+            paymentStatus = 'Pending';
+        }
+
         // Generate a unique orderId (you can use a better generator or UUID here)
         const orderId = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
@@ -183,7 +201,7 @@ const placeOrder = async (req, res) => {
             userId,
             orderId,
             paymentMethod,
-            paymentStatus: 'Pending',
+            paymentStatus, // Use the determined payment status
             address,
             products,
             totalAmount,
@@ -210,7 +228,6 @@ const placeOrder = async (req, res) => {
         res.status(500).json({ success: false, message: 'Internal server error.' });
     }
 };
-
 
 
 

@@ -55,8 +55,6 @@ const loadSales = async (req, res) => {
 
 
 
-
-
 const filterSales = async (req, res) => {
   try {
     const page = parseInt(req.query.page, 10) || 1;
@@ -68,40 +66,27 @@ const filterSales = async (req, res) => {
       return res.status(400).send('Invalid page or limit');
     }
 
-    const dateRange = req.query.dateRange || 'all';
+    // Extract and validate custom date range
     const startDateParam = req.query.startDate ? new Date(req.query.startDate) : null;
+    const endDateParam = req.query.endDate ? new Date(req.query.endDate) : null;
 
-    // Validate startDate if provided
+    // Validate dates
     if (startDateParam && isNaN(startDateParam.getTime())) {
       console.error('Invalid startDate:', req.query.startDate);
       return res.status(400).send('Invalid startDate');
     }
+    if (endDateParam && isNaN(endDateParam.getTime())) {
+      console.error('Invalid endDate:', req.query.endDate);
+      return res.status(400).send('Invalid endDate');
+    }
 
-    let startDate;
-    const endDate = new Date();
+    let startDate = startDateParam;
+    let endDate = endDateParam || new Date(); // Use current date as default end date
 
-    // Determine startDate based on query or date range
-    if (startDateParam) { 
-      startDate = startDateParam;
-    } else {
-      switch (dateRange) {
-        case '1w':
-          startDate = new Date();
-          startDate.setDate(endDate.getDate() - 7);
-          break;
-        case '1m':
-          startDate = new Date();
-          startDate.setMonth(endDate.getMonth() - 1);
-          break;
-        case '1y':
-          startDate = new Date();
-          startDate.setFullYear(endDate.getFullYear() - 1);
-          break;
-        case 'all':
-        default:
-          startDate = null;
-          break;
-      }
+    // Check if startDate is greater than endDate
+    if (startDate && endDate && startDate > endDate) {
+      console.error('startDate must be less than or equal to endDate');
+      return res.status(400).send('startDate must be less than or equal to endDate');
     }
 
     const query = {
@@ -109,6 +94,7 @@ const filterSales = async (req, res) => {
       'products.status': { $nin: ['Cancelled', 'Returned'] }
     };
 
+    // If both dates are provided, include them in the query
     if (startDate) {
       query.orderDate = {
         $gte: startDate,
@@ -117,9 +103,9 @@ const filterSales = async (req, res) => {
     }
 
     // Fetch all matching sales data for calculating totals
-    const allFilteredSalesData = await orders.find(query);
-    const totalDiscount = allFilteredSalesData.reduce((sum, order) => sum + (order.discountAmount || 0), 0);
-    const totalSalesAmount = allFilteredSalesData.reduce((sum, order) => {
+    const filteredSalesData = await orders.find(query);
+    const totalDiscount = filteredSalesData.reduce((sum, order) => sum + (order.discountAmount || 0), 0);
+    const totalSalesAmount = filteredSalesData.reduce((sum, order) => {
       const validAmount = order.products.reduce((total, product) => {
         return product.status !== 'Cancelled' && product.status !== 'Returned' ? total + product.totalPrice : total;
       }, 0);
@@ -127,7 +113,7 @@ const filterSales = async (req, res) => {
     }, 0);
 
     // Apply pagination
-    const totalOrdersCount = allFilteredSalesData.length;
+    const totalOrdersCount = filteredSalesData.length;
     const salesData = await orders.find(query).skip((page - 1) * limit).limit(limit);
     const totalPages = Math.ceil(totalOrdersCount / limit);
 
