@@ -45,7 +45,7 @@ app.use(express.json());
 
 // Set view engine
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views/user'));
+app.set('views', path.join(__dirname, 'views/User'));
 
 // Import routes
 const userRoutes = require('./routes/userRoutes');
