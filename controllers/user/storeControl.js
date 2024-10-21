@@ -85,7 +85,7 @@ const productDetails = async (req, res) => {
         const product = await products.findById(productId).populate('category').populate('brand');
 
         if (!product) {
-            return res.status(404).send('Product not found');
+            return res.status(404).send('Product not found')
         }
 
         const relatedProducts = await products.find({

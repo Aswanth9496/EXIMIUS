@@ -20,6 +20,7 @@ const loadHomePage = async (req, res) => {
 
 
 
+
 const logOut = async (req,res)=>{
     try {
         await req.session.destroy();
