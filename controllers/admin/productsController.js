@@ -33,10 +33,13 @@ const loadProductsPage = async (req, res) => {
 // for loading the add product page
 const loadAddproduct = async(req,res)=>{
     try {
-        const categorys = await category.find({ status:true});
+        const categorys = await category.find({ status:false});
         const brands = await brand.find({ status:'Active'});
 
+        console.log(categorys,'555');
         res.render('addProducts',{categorys,brands});
+       
+        
     } catch (error) {
         console.log(error);
         res.status(500).json({ message: 'Internal Server Error' }); 
