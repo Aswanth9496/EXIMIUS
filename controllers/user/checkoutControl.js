@@ -119,7 +119,7 @@ const placeOrder = async (req, res) => {
 
         for (const item of cart.products) {
             const price = item.product.offerPrice || item.product.price;
-            const totalPrice = Math.round(price * item.quantity * 100) / 100; // Round to two decimal places
+            const totalPrice = Math.round(price * item.quantity * 100) / 100; 
             totalAmount += totalPrice;
 
             // Check if the product has enough stock
